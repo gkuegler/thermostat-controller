@@ -6,52 +6,41 @@ Be very careful.
 
 import serial
 import json
+import threading
 
 import http_client
 import control
 import database
 import cmd_shell
 
-BAUD_RATE = 9600
-PORT = "COM5"
+class Arduino:
+    def __init__(self, port, baud_rate, controller):
+        self.port = port
+        self.baud_rate = baud_rate
+        self.controller = controller
+        self.thread = threading.Thread(target=self.loop, daemon=True)
 
-config = database.Database(name="data",
-                           sample_data={
-                               "host": "10.0.0.83",
-                               "port": 80,
-                               "sp": 76,
-                               "threshold": 1.5,
-                               "sample_count": 3
-                           })
+    def start(self):
+        self.thread.start()
 
-http = http_client.Client(config["host"], config["port"], mock=True)
+    def loop(self):
+        with serial.Serial(self.port, self.baud_rate, write_timeout=1, timeout=15) as s:
+            while True:
+                s.flush()
+                try:
+                    # Block for arduino to send serial communications.
+                    msg = s.readline()
+                    # print(f"msg: {msg}")
 
-ctrl = control.SlidingWindowAverageCooling(
-    sp=config["sp"],
-    threshold=config["threshold"],
-    sample_count=config["sample_count"],
-    cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
-    cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
-)
+                    data = json.loads(msg)
 
-cmd_shell.start_command_shell(ctrl.set_sp, ctrl.set_threshold, http.set_timeout,
-                          http.set_host, http.set_port)
+                    print(data["tempF"])
 
-http.set_timeout(30)
+                    # Update controller with sensor data.
+                    self.controller.update(data["tempF"])
 
-with serial.Serial(PORT, BAUD_RATE, write_timeout=1, timeout=15) as s:
-    while True:
-        s.flush()
-        try:
-            msg = s.readline()
-            # print(f"msg: {msg}")
-
-            data = json.loads(msg)
-
-            print(data["tempF"])
-
-            ctrl.update(data["tempF"])
-
-        except json.JSONDecodeError as ex:
-            print("Message not valid json.")
-            ctrl.clear_buf()
+                except json.JSONDecodeError as ex:
+                    print("Message not valid json.")
+                    # Tell controller pipelined data is no longer
+                    # valid in filters, dsp, etc.
+                    self.controller.clear_buf()

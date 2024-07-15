@@ -1,7 +1,4 @@
-import threading
-
-import cmd, sys
-import types
+import cmd
 
 # def parse(arg, fn=None):
 #     'Convert a series of zero or more numbers to an argument tuple'
@@ -14,13 +11,14 @@ class CommandShell(cmd.Cmd):
     file = None
 
     def __init__(self, set_sp_fn, set_threshold_fn, set_timeout_fn,
-                 set_host_fn, set_port_fn):
+                 set_host_fn, set_port_fn, toggle_http_enable_fn):
         super().__init__()
         self.set_sp = set_sp_fn
         self.set_threshold = set_threshold_fn
         self.set_timeout = set_timeout_fn
         self.set_host = set_host_fn
         self.set_port = set_port_fn
+        self.toggle_http_enable_fn = toggle_http_enable_fn
 
     # # ----- basic turtle commands -----
     # def do_help(self, arg):
@@ -39,6 +37,9 @@ class CommandShell(cmd.Cmd):
     def do_stop(self, arg):
         pass
 
+    def do_http(self, arg):
+        self.toggle_http_enable_fn()
+
     def do_set(self, arg):
         """
         Set a value:
@@ -56,8 +57,7 @@ class CommandShell(cmd.Cmd):
             try:
                 value = float(value)
             except:
-                print("Couldn't parse value.")
-                return
+                pass
 
         match key:
             case "sp":
@@ -87,16 +87,5 @@ class CommandShell(cmd.Cmd):
     # return line
 
 
-shell_instance = None
-thread = None
-
-
-def start_command_shell(*args):
-    global shell_instance, thread
-    shell_instance = CommandShell(*args)
-    thread = threading.Thread(target=shell_instance.cmdloop, daemon=True)
-    thread.start()
-
-
 if __name__ == '__main__':
-    CommandShell(print, print, print, print, print).cmdloop()
+    CommandShell(print, print, print, print, print, print).cmdloop()
