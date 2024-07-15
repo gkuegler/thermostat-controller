@@ -1,0 +1,7 @@
+{
+    "host": "10.0.0.83",
+    "port": 80,
+    "sp": 76,
+    "threshold": 1.5,
+    "sample_count": 3
+}

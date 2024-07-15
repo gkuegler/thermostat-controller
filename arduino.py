@@ -10,7 +10,7 @@ import json
 import http_client
 import control
 import database
-import input
+import cmd_shell
 
 BAUD_RATE = 9600
 PORT = "COM5"
@@ -24,17 +24,17 @@ config = database.Database(name="data",
                                "sample_count": 3
                            })
 
-http = http_client.Client(config["host"], config["port"], mock=False)
+http = http_client.Client(config["host"], config["port"], mock=True)
 
 ctrl = control.SlidingWindowAverageCooling(
-    sp=config["host"],
+    sp=config["sp"],
     threshold=config["threshold"],
     sample_count=config["sample_count"],
     cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
     cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
 )
 
-input.start_command_shell(ctrl.set_sp, ctrl.set_threshold, http.set_timeout,
+cmd_shell.start_command_shell(ctrl.set_sp, ctrl.set_threshold, http.set_timeout,
                           http.set_host, http.set_port)
 
 http.set_timeout(30)

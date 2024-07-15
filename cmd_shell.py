@@ -15,6 +15,7 @@ class CommandShell(cmd.Cmd):
 
     def __init__(self, set_sp_fn, set_threshold_fn, set_timeout_fn,
                  set_host_fn, set_port_fn):
+        super().__init__()
         self.set_sp = set_sp_fn
         self.set_threshold = set_threshold_fn
         self.set_timeout = set_timeout_fn
@@ -29,6 +30,7 @@ class CommandShell(cmd.Cmd):
 
     def do_exit(self, arg):
         """Exit the program."""
+        exit()
         return True
 
     def do_start(self, arg):

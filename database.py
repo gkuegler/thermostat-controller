@@ -26,7 +26,7 @@ def load_json_from_file(path, allow_integers_as_keys=False):
 
 def write_json_to_file(path, data):
     folder = os.path.dirname(path)
-    if not os.path.isdir(folder):
+    if folder and not os.path.isdir(folder):
         os.makedirs(folder)
 
     with open(path, "w") as f:
@@ -61,7 +61,7 @@ class Database:
         :type       sample_data:  dict
         """
 
-        self.logger = logging.Logger(f"database.{name}", level=log_level)
+        self.logger = logging.Logger(f"database.{name}", level=logging.INFO)
         self.name = name
         self.file_path = name + ".json"
         self.use_file = use_file

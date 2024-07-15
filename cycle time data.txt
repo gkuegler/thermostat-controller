@@ -48,3 +48,9 @@ duration on: 8.02
 duration off: 8.02
 duration on: 8.35
 duration off: 7.35
+duration on: 8.68
+duration off: 6.85
+duration off: 28684336.75
+duration on: 0.50
+duration off: 1.34
+duration off: 28684339.85
