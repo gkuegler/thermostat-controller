@@ -9,31 +9,30 @@ import json
 
 import http_client
 import control
-import database
+from database import Database
 import cmd_shell
 import arduino
 
 BAUD_RATE = 9600
 PORT = "COM5"
 
-config = database.Database(name="data",
+db = Database(name="data",
                            sample_data={
-                               "host": "10.0.0.83",
+                               "host": "10.0.0.10",
                                "port": 80,
-                               "sp": 76,
+                               "sp": 74,
                                "threshold": 1.5,
-                               "sample_count": 3
-
+                               "sample_count": 3,
+                               "http_enabled": True
                            })
 
-http = http_client.Client(config["host"], config["port"], enabled=True)
+http = http_client.Client(db)
 http.set_timeout(30)
-http.enable()
+db["http_enabled"]=False
 
 ctrl = control.SlidingWindowAverageCooling(
-    sp=config["sp"],
-    threshold=config["threshold"],
-    sample_count=config["sample_count"],
+    database=db,
+    sample_count=db["sample_count"],
     cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
     cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
 )
@@ -43,7 +42,6 @@ ctrl = control.SlidingWindowAverageCooling(
 device = arduino.Arduino(PORT, BAUD_RATE, ctrl)
 device.start()
 
-shell = cmd_shell.CommandShell(ctrl.set_sp, ctrl.set_threshold, http.set_timeout,
-                          http.set_host, http.set_port, http.enable)
+shell = cmd_shell.CommandShell(db)
 
 shell.cmdloop()

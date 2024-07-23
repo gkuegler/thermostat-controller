@@ -32,9 +32,8 @@ class SlidingWindowAverageCooling(object):
     docstring
     """
 
-    def __init__(self, sp, threshold, sample_count, cb_above, cb_below):
-        self.sp = sp
-        self.threshold = threshold
+    def __init__(self, database, sample_count, cb_above, cb_below):
+        self.database = database
         self.sample_count = sample_count
         self.cb_above = cb_above
         self.cb_below = cb_below
@@ -61,44 +60,39 @@ class SlidingWindowAverageCooling(object):
         for i in range(len(self.samples)):
             self.samples[i] = None
 
-    def set_sp(self, sp):
-        with self.mutext:
-            self.sp = sp
-
-    def set_threshold(self, threshold):
-        with self.mutext:
-            self.threshold = threshold
-
     def update(self, sample):
-        with self.mutext:
-            self.samples[self.index] = sample
-            self.increment_index()
+        self.samples[self.index] = sample
+        self.increment_index()
 
-            sum = 0
-            for x in self.samples:
-                if isinstance(x, (int, float)):
-                    sum += x
-                else:
-                    return None
+        # Get current control parameters.
+        sp = self.database["sp"]
+        threshold = self.database["threshold"]
 
-            avg = sum / float(len(self.samples))
-
-            if avg > self.sp:
-                print("Cooling Needed")
-                self.mode = "on"
-                self.data_logger.log_on()
-            elif avg < (self.sp - self.threshold):
-                print("Cooling Off")
-                self.mode = "off"
-                self.data_logger.log_off()
+        sum = 0
+        for x in self.samples:
+            if isinstance(x, (int, float)):
+                sum += x
             else:
-                print("Threshold")
+                return None
 
-            if self.mode == "on":
-                self.cb_above()
+        avg = sum / float(len(self.samples))
 
-            elif self.mode == "off":
-                self.cb_below()
+        if avg > sp:
+            print("Cooling Needed")
+            self.mode = "on"
+            self.data_logger.log_on()
+        elif avg < (sp - threshold):
+            print("Cooling Off")
+            self.mode = "off"
+            self.data_logger.log_off()
+        else:
+            print("Threshold")
+
+        if self.mode == "on":
+            self.cb_above()
+
+        elif self.mode == "off":
+            self.cb_below()
 
 
 if __name__ == '__main__':

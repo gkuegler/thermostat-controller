@@ -10,15 +10,9 @@ class CommandShell(cmd.Cmd):
     prompt = '(control) '
     file = None
 
-    def __init__(self, set_sp_fn, set_threshold_fn, set_timeout_fn,
-                 set_host_fn, set_port_fn, toggle_http_enable_fn):
+    def __init__(self, database):
         super().__init__()
-        self.set_sp = set_sp_fn
-        self.set_threshold = set_threshold_fn
-        self.set_timeout = set_timeout_fn
-        self.set_host = set_host_fn
-        self.set_port = set_port_fn
-        self.toggle_http_enable_fn = toggle_http_enable_fn
+        self.db = database
 
     # # ----- basic turtle commands -----
     # def do_help(self, arg):
@@ -38,7 +32,10 @@ class CommandShell(cmd.Cmd):
         pass
 
     def do_http(self, arg):
-        self.toggle_http_enable_fn()
+        self.db["http_enabled"] = not self.db["http_enabled"]
+
+    def do_dump(self, arg):
+        print(self.db)
 
     def do_set(self, arg):
         """
@@ -57,19 +54,22 @@ class CommandShell(cmd.Cmd):
             try:
                 value = float(value)
             except:
+                # value is a string
                 pass
 
-        match key:
-            case "sp":
-                self.set_sp(value)
-            case "threshold":
-                self.set_threshold(value)
-            case "timeout":
-                self.set_timeout(value)
-            case "host":
-                self.set_host(value)
-            case "port":
-                self.set_port(value)
+        if err:=self.db.set_existing(key, value):
+            print(err)
+        # match key:
+        #     case "sp":
+        #         self.set_sp(value)
+        #     case "threshold":
+        #         self.set_threshold(value)
+        #     case "timeout":
+        #         self.set_timeout(value)
+        #     case "host":
+        #         self.set_host(value)
+        #     case "port":
+        #         self.set_port(value)
 
     # # ----- record and playback -----
     # def do_record(self, arg):

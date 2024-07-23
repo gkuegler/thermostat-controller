@@ -13,66 +13,53 @@ class Request:
 
 class Client:
 
-    def __init__(self, host, port, enabled=True):
-        self.host = host
-        self.port = port
-        self.enabled = enabled
+    def __init__(self, database):
+        self.db = database
 
         self.endpoints = {}
-
-        self.mutex = threading.Lock()
 
     # def register_endpoint(self, name, method, path, body=None):
     #     self.endpoints[name] = Request(method, path, body)
 
-    def set_host(self, host):
-        with self.mutex:
-            self.host = host
-
-    def set_port(self, port):
-        with self.mutex:
-            self.port = port
-    def enable(self):
-        with self.mutex:
-            self.enabled = not self.enabled
-            print(f"HTTP Enabled: {self.enabled}")
-
     def request(self, method: str, path: str, body: str | None = None):
         # Create a connection to the server
-        with self.mutex:
-            if self.enabled:
-                try:
-                    conn = http.client.HTTPConnection(self.host, self.port, timeout=3)
+        enabled = self.db["http_enabled"]
+        host = self.db["host"]
+        port = self.db["port"]
 
-                    # Make a request to the server
-                    conn.request(method, path, body)
+        if enabled:
+            try:
+                conn = http.client.HTTPConnection(host, port, timeout=3)
 
-                    # Get the response from the server
-                    response = conn.getresponse()
+                # Make a request to the server
+                conn.request(method, path, body)
 
-                    # Print the status and reason
-                    print(
-                        f"{method}:{self.host}{path}::{self.port} -- {body} => ({response.status}) {response.reason}"
-                    )
-                    # print("Body:", body)
-                    # print("Status:", response.status)
-                    # print("Reason:", response.reason)
+                # Get the response from the server
+                response = conn.getresponse()
 
-                    # Read and print the response body
-                    response_body = response.read().decode()
-                    if response_body:
-                        print("Response body:", response_body)
+                # Print the status and reason
+                print(
+                    f"{method}:{host}{path}::{port} -- {body} => ({response.status}) {response.reason}"
+                )
+                # print("Body:", body)
+                # print("Status:", response.status)
+                # print("Reason:", response.reason)
 
-                    # Close the connection
-                    conn.close()
+                # Read and print the response body
+                response_body = response.read().decode()
+                if response_body:
+                    print("Response body:", response_body)
 
-                    return response_body
-                except TimeoutError:
-                    print("Connection timed out.")
-                    return None
-            else:
-                print(f"[mock]{method}: {self.host}{path}::{self.port} -- {body}")
+                # Close the connection
+                conn.close()
+
+                return response_body
+            except TimeoutError:
+                print("Connection timed out.")
                 return None
+        else:
+            print(f"[mock]{method}: {host}{path}::{port} -- {body}")
+            return None
 
     def set_timeout(self, time_s: int):
         return self.request("POST", "/api/cooling/timeout", str(time_s))

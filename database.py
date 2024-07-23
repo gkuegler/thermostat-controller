@@ -94,9 +94,9 @@ class Database:
         self.logger.debug(
             f"setting database item ->\nkey '{key}' - type '{type(key)}'\nvalue '{value}' - type '{type(value)}'"
         )
-        with self.lock:
+        with self.mutex:
             self.data[key] = value
-            
+
         self.save()
 
     def __getitem__(self, key):
@@ -104,7 +104,7 @@ class Database:
 
     def get(self, key: int | str, default) -> Serializable:
         self.logger.debug(f"get(): key: {key}")
-        with self.lock:
+        with self.mutex:
             try:
                 return self.data[key]
             except KeyError:
@@ -112,6 +112,15 @@ class Database:
                     f"'{key}' key not found in {self}. Using default value '{default}'."
                 )
                 return default
+    def set_existing(self, key, value):
+        """error if key doesn't exist"""
+        try:
+            self.data[key]
+            self.__setitem__(key, value)
+            return None
+        except KeyError:
+            return f"error: '{key}' not a valid parameter"
+
 
     def items(self):
         return self.data.items()
@@ -155,7 +164,10 @@ class Database:
         self.save()
 
     def __str__(self):
-        return f"Database(\"{self.name}\")"
+        BORDER = "-"*30
+        return BORDER+"\n"+"\n".join(f"{k}: {v}" for k, v in self.data.items())+"\n"+BORDER
+        # return f"Database(\"{self.name}\")"
+
 
 
 ########################################################################
