@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from threading import Lock
 
 from typing import TypeAlias
 
@@ -67,6 +68,7 @@ class Database:
         self.use_file = use_file
         self.allowed_to_write = use_file and allowed_to_write
         self.allow_integers_as_keys = allow_integers_as_keys
+        self.mutex = Lock()
 
         sample_data = sample_data if sample_data else {}
 
@@ -92,7 +94,9 @@ class Database:
         self.logger.debug(
             f"setting database item ->\nkey '{key}' - type '{type(key)}'\nvalue '{value}' - type '{type(value)}'"
         )
-        self.data[key] = value
+        with self.lock:
+            self.data[key] = value
+            
         self.save()
 
     def __getitem__(self, key):
@@ -100,13 +104,14 @@ class Database:
 
     def get(self, key: int | str, default) -> Serializable:
         self.logger.debug(f"get(): key: {key}")
-        try:
-            return self.data[key]
-        except KeyError:
-            self.logger.warning(
-                f"'{key}' key not found in {self}. Using default value '{default}'."
-            )
-            return default
+        with self.lock:
+            try:
+                return self.data[key]
+            except KeyError:
+                self.logger.warning(
+                    f"'{key}' key not found in {self}. Using default value '{default}'."
+                )
+                return default
 
     def items(self):
         return self.data.items()
