@@ -80,7 +80,7 @@ class Client:
 
 if __name__ == "__main__":
 
-    c = Client("10.0.0.83", 80, mock=False)
+    c = Client("esp32s3-therm.local", 80, enabled=True)
     while True:
         c.request("GET", "/api/cooling/status")
         time.sleep(3)
