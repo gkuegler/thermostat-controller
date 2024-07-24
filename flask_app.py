@@ -20,15 +20,15 @@ from flask import request
 # Couldn't put this in HTML file becuase of the jinja template.
 # <!-- {{'%0.2f'|format(product_details.UnitPrice|float)}} formatting a 2 decimal float -->
 
-# Used for testing.
-# Valid kv pairs need to be defined before it's used because flask debugging
-# launcher automatically calls 'create_app' before if name==main block runs.
+# Default data for html template, used for testing when app is loaded 'create_app' by flask.
+# Flask module automatically calls 'create_app' before if name==main block runs.
 database = {
     "sp": 78,
     "threshold": 1,
     "timeout": 30,
     "http_enabled": False,
     "current_temp": 0,
+    "cooling_status": "off",
 }
 
 
@@ -38,7 +38,7 @@ def set_database(db):
     print(f"db set: {database}")
 
 
-def get_db():
+def get_database():
     global database
     return database
 
@@ -69,16 +69,14 @@ def create_app():
     # a simple page that says hello
     @app.route('/', methods=['GET'])
     def index_get():
-        db = get_db()
+        db = get_database()
         return flask.render_template(
             'index.html', **convert_py_datatypes_to_html_datatypes(db))
 
     @app.route('/', methods=['POST'])
-    def index_put():
-        print(request.form)
-        # print("is html enabled: " + request.form.get("http_enabled"))
-        enabled = True if request.form.get("http_enabled") == 0 else False
-        data_mapping = {
+    def index_post():
+        # Transform form data from strings into desired datatypes.
+        input_data_mapping = {
             # "host": "10.0.0.10",
             # "port": 80,
             "sp": float(request.form["sp"]),
@@ -86,9 +84,8 @@ def create_app():
             "http_enabled": get_form_checkbox_value(request.form,
                                                     "http_enabled")
         }
-        db = get_db()
-        db.update(data_mapping)
-        # print(db)
+        db = get_database()
+        db.update(input_data_mapping)
         return flask.redirect('/')
 
     return app
