@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
+    <title>Flask Test App</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+</head>
+
+<body>
+    <div>
+
+        <h1>Control Panel</h1>
+        <form method="POST">
+
+            <button onClick="window.location.reload();">Refresh Page: this button sends a POST on refresh if i used the
+                submit button.</button>
+            <div>
+                <p>Temperature: <output id="tempValue"></output> degF</p>
+                <input id="tempSlider" name="temperature" type="range" min="70" max="78" step="0.5"
+                    value="{{temperature}}" />
+
+            </div>
+            <div>
+                <p>Threshold: <output id="threshValue"></output> degF</p>
+                <input id="threshSlider" name="threshold" type="range" min="0" max="2" step="0.25"
+                    value="{{threshold}}" />
+            </div>
+            <label>Timeout (s): </label><input type="number" name="timeout" min="0" max="30" value="{{timeout}}" />
+            <div>
+                <label for="horns">Enabled:</label>
+                <input type="checkbox" id="enabled" name="enabled" />
+            </div>
+            <input type="submit" />
+        </form>
+    </div>
+</body>
+<script>
+    // map objects from existing html
+    const tempValue = document.querySelector("#tempValue");
+    const tempInput = document.querySelector("#tempSlider");
+    // initially sets the value
+    tempValue.textContent = tempInput.value;
+    tempInput.addEventListener("input", (event) => {
+        tempValue.textContent = parseFloat(event.target.value).toFixed(1);
+    });
+    const threshValue = document.querySelector("#threshValue");
+    const threshInput = document.querySelector("#threshSlider");
+    threshValue.textContent = threshInput.value;
+    threshInput.addEventListener("input", (event) => {
+        threshValue.textContent = parseFloat(event.target.value).toFixed(2);
+    });
+</script>
+
+</html>

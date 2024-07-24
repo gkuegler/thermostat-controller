@@ -1,0 +1,30 @@
+html {
+    background-color: #000000;
+    color: #eeeeee;
+    width: 75%;
+    border: #FFFFFF 1px solid;
+    /* 
+    * If (2) values are specified for 'margin' or 'padding',
+    * then the (2) parameters refer to
+    * 'top-and-bottom' and 'left-and-right'.
+    * 
+    * If margin-top or margin-bottom are 'auto',
+    * their value is set to 0.
+    */
+    margin: 0 auto;
+    padding: 1%;
+}
+
+div {
+    /* width: 15em; */
+    /* border: 1px solid #333; */
+    /* box-shadow: 8px 8px 5px #444; */
+    margin: 1em auto;
+    text-align: center;
+}
+
+:in-range{
+    width: 90%
+}
+/* p{
+} */

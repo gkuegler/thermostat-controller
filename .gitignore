@@ -1,1 +1,20 @@
-/__pycache__
+# PROJECT SPECIFIC
+data.json
+cycle time data.txt
+
+# PYTHON
+.venv/
+*.pyc
+__pycache__/
+
+# FLASK
+instance/
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+dist/
+build/
+*.egg-info/
+# FLASK end
