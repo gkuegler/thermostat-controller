@@ -64,6 +64,9 @@ class SlidingWindowAverageCooling(object):
         self.samples[self.index] = sample
         self.increment_index()
 
+        if isinstance(sample, (int, float)):
+            self.database["current_temp"] = sample
+
         # Get current control parameters.
         sp = self.database["sp"]
         threshold = self.database["threshold"]

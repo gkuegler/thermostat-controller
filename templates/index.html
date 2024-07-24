@@ -18,22 +18,22 @@
                 submit button.</button>
             <div>
                 <p>Temperature: <output id="tempValue"></output> degF</p>
-                <input id="tempSlider" name="temperature" type="range" min="70" max="78" step="0.5"
-                    value="{{temperature}}" />
+                <input id="tempSlider" name="sp" type="range" min="70" max="80" step="0.5" value="{{sp}}" />
 
             </div>
             <div>
                 <p>Threshold: <output id="threshValue"></output> degF</p>
                 <input id="threshSlider" name="threshold" type="range" min="0" max="2" step="0.25"
-                    value="{{threshold}}" />
+                    value="{{'%0.2f'|format(threshold)}}" />
             </div>
-            <label>Timeout (s): </label><input type="number" name="timeout" min="0" max="30" value="{{timeout}}" />
+            <!-- <label>Timeout (s): </label><input type="number" name="timeout" min="0" max="30" value="31" /> -->
             <div>
                 <label for="horns">Enabled:</label>
-                <input type="checkbox" id="enabled" name="enabled" />
+                <input type="checkbox" id="enabled" name="http_enabled" value="on" {{http_enabled}} />
             </div>
             <input type="submit" />
         </form>
+        <p>Current Temp: {{'%0.2f'|format(current_temp)}} degF</p>
     </div>
 </body>
 <script>
