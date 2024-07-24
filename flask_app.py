@@ -67,28 +67,29 @@ def create_app():
     app = flask.Flask(__name__)
 
     # a simple page that says hello
-    @app.route('/', methods=['GET', 'POST'])
-    def hello():
+    @app.route('/', methods=['GET'])
+    def index_get():
         db = get_db()
-        print(db)
-        if request.method == 'POST':
-            print(request.form)
-            # print("is html enabled: " + request.form.get("http_enabled"))
-            enabled = True if request.form.get("http_enabled") == 0 else False
-            data_mapping = {
-                # "host": "10.0.0.10",
-                # "port": 80,
-                "sp":
-                float(request.form["sp"]),
-                "threshold":
-                float(request.form["threshold"]),
-                # "sample_count": 3,
-                "http_enabled":
-                get_form_checkbox_value(request.form, "http_enabled")
-            }
-            db.update(data_mapping)
         return flask.render_template(
             'index.html', **convert_py_datatypes_to_html_datatypes(db))
+
+    @app.route('/', methods=['POST'])
+    def index_put():
+        print(request.form)
+        # print("is html enabled: " + request.form.get("http_enabled"))
+        enabled = True if request.form.get("http_enabled") == 0 else False
+        data_mapping = {
+            # "host": "10.0.0.10",
+            # "port": 80,
+            "sp": float(request.form["sp"]),
+            "threshold": float(request.form["threshold"]),
+            "http_enabled": get_form_checkbox_value(request.form,
+                                                    "http_enabled")
+        }
+        db = get_db()
+        db.update(data_mapping)
+        # print(db)
+        return flask.redirect('/')
 
     return app
 

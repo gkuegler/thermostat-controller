@@ -10,14 +10,13 @@
 
 <body>
     <div>
-
         <h1>Control Panel</h1>
+        <button onClick="window.location.reload();">Refresh Page: this button sends a POST on refresh if i used the
+            submit button.</button>
         <form method="POST">
 
-            <button onClick="window.location.reload();">Refresh Page: this button sends a POST on refresh if i used the
-                submit button.</button>
             <div>
-                <p>Temperature: <output id="tempValue"></output> degF</p>
+                <p>Temperature: <output id="tempValue">{{sp}}</output> degF</p>
                 <input id="tempSlider" name="sp" type="range" min="70" max="80" step="0.5" value="{{sp}}" />
 
             </div>
