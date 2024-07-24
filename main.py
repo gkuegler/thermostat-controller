@@ -24,14 +24,16 @@ PORT = "COM5"
 db = Database(
     name="data",
     sample_data={
+        # User controlled parameters.
         "host": "10.0.0.10",
         "port": 80,
         "sp": 74,
         "threshold": 1.5,
         "sample_count": 3,
         "http_enabled": True,
-        # Data Params
-        "current_temp": 0.0,  # display purposes only
+        # Status parameters set by the running program.
+        "current_temp": 0.0,
+        "cooling_status": "off",
     })
 
 http = http_client.Client(db)

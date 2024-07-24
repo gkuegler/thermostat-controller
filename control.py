@@ -2,7 +2,7 @@ import time
 from threading import Lock
 
 
-class DataLogger:
+class CycleTimeLogger:
 
     def __init__(self):
         self.time_on = 0
@@ -35,16 +35,13 @@ class SlidingWindowAverageCooling(object):
     def __init__(self, database, sample_count, cb_above, cb_below):
         self.database = database
         self.sample_count = sample_count
-        self.cb_above = cb_above
-        self.cb_below = cb_below
+        self.cb_above = cb_above  # callback
+        self.cb_below = cb_below  # callback
 
         self.samples = [None] * sample_count
         self.index = 0
-
         self.mode = "off"
-
-        self.data_logger = DataLogger()
-
+        self.cycle_logger = CycleTimeLogger()
         self.mutext = Lock()
 
     def increment_index(self):
@@ -60,10 +57,21 @@ class SlidingWindowAverageCooling(object):
         for i in range(len(self.samples)):
             self.samples[i] = None
 
-    def update(self, sample):
+    def filter(self, sample):
+        """
+        Return the average temperature across the last (3) samples.
+        """
         self.samples[self.index] = sample
         self.increment_index()
+        sum = 0
+        for x in self.samples:
+            if isinstance(x, (int, float)):
+                sum += x
+            else:
+                return None
+        return sum / float(len(self.samples))
 
+    def update(self, sample):
         if isinstance(sample, (int, float)):
             self.database["current_temp"] = sample
 
@@ -71,25 +79,18 @@ class SlidingWindowAverageCooling(object):
         sp = self.database["sp"]
         threshold = self.database["threshold"]
 
-        sum = 0
-        for x in self.samples:
-            if isinstance(x, (int, float)):
-                sum += x
-            else:
-                return None
+        value = self.filter(sample)
 
-        avg = sum / float(len(self.samples))
-
-        if avg > sp:
+        if value > sp:
             print("Cooling Needed")
             self.mode = "on"
             self.database["cooling_mode"] = "on"
-            self.data_logger.log_on()
-        elif avg < (sp - threshold):
+            self.cycle_logger.log_on()
+        elif value < (sp - threshold):
             print("Cooling Off")
             self.mode = "off"
             self.database["cooling_mode"] = "off"
-            self.data_logger.log_off()
+            self.cycle_logger.log_off()
         else:
             print("Threshold")
 
@@ -101,7 +102,7 @@ class SlidingWindowAverageCooling(object):
 
 
 if __name__ == '__main__':
-    d = DataLogger()
+    d = CycleTimeLogger()
     d.log_on()
     time.sleep(6)
     d.log_off()
