@@ -80,10 +80,29 @@ class Database:
         - overwrite existing file with sample data
 
         """
-        if not overwrite_with_sample_data or not self.load():
+        if self.use_file and not overwrite_with_sample_data:
+            try:
+                self.data = load_json_from_file(
+                    self.file_path,
+                    allow_integers_as_keys=self.allow_integers_as_keys)
+            # If the file does not exist, load in the sample data.
+            # A new data file should be created whenever the key is
+            # set through a voice command.
+            except FileNotFoundError:
+                self.logger.error(f"Couldn't find datafile: {self.file_path}")
+                self.logger.warn("Using sample data.\n")
+                self.data = sample_data
+                self.save()
+            # An error in JSON likely.
+            # File may be corrupt.
+            except Exception as ex:
+                self.logger.error(f"Couldn't load data with exception: {ex}")
+                self.logger.warn("Using sample data. Disabling file writes.\n")
+                self.allowed_to_write = False
+                self.data = sample_data
+        else:
             self.data = sample_data
-
-        self.save()
+            self.save()
 
     def __setitem__(self, key, value):
         if not self.allow_integers_as_keys and isinstance(key, (int, float)):
@@ -112,7 +131,8 @@ class Database:
                     f"'{key}' key not found in {self}. Using default value '{default}'."
                 )
                 return default
-    def set_existing(self, key, value):
+
+    def set(self, key, value):
         """error if key doesn't exist"""
         try:
             self.data[key]
@@ -120,7 +140,6 @@ class Database:
             return None
         except KeyError:
             return f"error: '{key}' not a valid parameter"
-
 
     def items(self):
         return self.data.items()
@@ -145,7 +164,7 @@ class Database:
                 self.file_path,
                 allow_integers_as_keys=self.allow_integers_as_keys)
             return True
-        # If the file does not exist load in the sample data.
+        # If the file does not exist, load in the sample data.
         # A new data file should be created whenever the key is
         # set through a voice command.
         except FileNotFoundError:
@@ -164,10 +183,10 @@ class Database:
         self.save()
 
     def __str__(self):
-        BORDER = "-"*30
-        return BORDER+"\n"+"\n".join(f"{k}: {v}" for k, v in self.data.items())+"\n"+BORDER
+        BORDER = "-" * 30
+        return BORDER + "\n" + "\n".join(
+            f"{k}: {v}" for k, v in self.data.items()) + "\n" + BORDER
         # return f"Database(\"{self.name}\")"
-
 
 
 ########################################################################

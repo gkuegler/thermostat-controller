@@ -81,15 +81,18 @@ class SlidingWindowAverageCooling(object):
 
         value = self.filter(sample)
 
+        if value == None:
+            return
+
         if value > sp:
             print("Cooling Needed")
             self.mode = "on"
-            self.database["cooling_mode"] = "on"
+            self.database.set("cooling_status", "on")
             self.cycle_logger.log_on()
         elif value < (sp - threshold):
             print("Cooling Off")
             self.mode = "off"
-            self.database["cooling_mode"] = "off"
+            self.database.set("cooling_status", "off")
             self.cycle_logger.log_off()
         else:
             print("Threshold")

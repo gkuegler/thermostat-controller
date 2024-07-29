@@ -13,11 +13,12 @@ import cmd_shell
 import arduino
 import flask_app
 
-# TODO: need single parameter definitions
-# e.g. {"sp":74, "sp.min":68, "sp.max":80, "sp.step":0.5}
+# TODO: need single parameter definitions to ensure type safety
+# e.g. {"sp":74, "sp.type":float, "sp.min":68, "sp.max":80, "sp.step":0.5}
+# make a database verify types on database construction
 
-FK_LAN_ENABLED = True
-FK_NO_RELOAD = True
+FLASK_LAN_ENABLED = True
+FLASK_NO_RELOAD = True
 BAUD_RATE = 9600
 PORT = "COM5"
 
@@ -55,7 +56,7 @@ shell = cmd_shell.CommandShell(db)
 flask_app.set_database(db)
 app = flask_app.create_app()
 t = threading.Thread(target=flask_app.run_app,
-                     args=(app, FK_LAN_ENABLED, FK_NO_RELOAD),
+                     args=(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD),
                      daemon=True)
 t.start()
 
