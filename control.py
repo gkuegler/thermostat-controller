@@ -71,9 +71,11 @@ class SlidingWindowAverageCooling(object):
                 return None
         return sum / float(len(self.samples))
 
-    def update(self, sample):
+    def update(self, sample, humidity):
         if isinstance(sample, (int, float)):
             self.database["current_temp"] = sample
+        if isinstance(humidity, (int, float)):
+            self.database["current_humidity"] = humidity
 
         # Get current control parameters.
         sp = self.database["sp"]

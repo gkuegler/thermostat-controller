@@ -84,6 +84,8 @@ void loop() {
     Serial.print(time);
     Serial.print(", \"tempF\": ");
     Serial.print(tempF);
+    Serial.print(", \"humidity\":");
+    Serial.print(humidity.relative_humidity);
     Serial.print("}\n");
   };
 

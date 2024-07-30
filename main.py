@@ -35,6 +35,7 @@ db = Database(
         # Status parameters set by the running program.
         "current_temp": 0.0,
         "cooling_status": "off",
+        "current_humidity": 111
     })
 
 http = http_client.Client(db)

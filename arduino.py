@@ -27,7 +27,7 @@ class Arduino:
             # Block for arduino to send serial communications.
             data = json.loads(s.readline())
             print(data["tempF"])
-            self.controller.update(data["tempF"])
+            self.controller.update(data["tempF"], data["humidity"])
         except json.JSONDecodeError:
             print("Message not valid json.")
             # Tell controller pipelined data is no longer
