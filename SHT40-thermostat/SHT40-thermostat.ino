@@ -89,9 +89,5 @@ void loop() {
     Serial.print("}\n");
   };
 
-  // Serial.print("Humidity: ");
-  // Serial.print(humidity.relative_humidity);
-  // Serial.println("% rH");
-
   delay(10000);
 }
