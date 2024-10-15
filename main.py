@@ -28,7 +28,7 @@ db = Database(
         # User controlled parameters.
         "host": "10.0.0.10",
         "port": 80,
-        "sp": 74,
+        "sp": 65,
         "threshold": 1.5,
         "sample_count": 3,
         "http_enabled": True,
@@ -42,7 +42,7 @@ http = http_client.Client(db)
 http.set_timeout(30)
 db["http_enabled"] = False
 
-ctrl = control.SlidingWindowAverageCooling(
+ctrl = control.SlidingWindowAverageHeating(
     database=db,
     sample_count=db["sample_count"],
     cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
