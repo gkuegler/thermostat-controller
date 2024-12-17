@@ -1,0 +1,38 @@
+[tool.black]
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+^/foo.py  # exclude a file named foo.py in the root of the project (in addition to the defaults)
+'''
+include = '\.pyi?$'
+line-length = 72
+target-version = ['py38']
+
+[tool.yapf]
+based_on_style                              = "pep8"
+blank_line_before_nested_class_or_def       = false
+coalesce_brackets                           = true
+column_limit                                = 72
+indent_dictionary_value                     = true
+no_spaces_around_selected_binary_operators  = "*,/"
+spaces_before_comment                       = 2
+split_all_top_level_comma_separated_values  = true
+split_arguments_when_comma_terminated       = true
+split_before_arithmetic_operator            = true
+split_before_bitwise_operator               = true
+split_before_expression_after_opening_paren = false
+split_before_first_argument                 = false
+split_before_logical_operator               = true
+split_complex_comprehension                 = true
+
+[tool.yapfignore]
+ignore_patterns = []
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = """
+    line-too-long,
+    missing-function-docstring,
+    missing-module-docstring,
+    wildcard-import,
+    unused-wildcard-import,
+"""
