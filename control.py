@@ -170,7 +170,7 @@ class SlidingWindowAverageHeating(object):
             self.mode = "on"
             self.database.set("cooling_status", "on")
             self.cycle_logger.log_on()
-        elif value > (sp - threshold):
+        elif value > (sp + threshold):
             print("Heating Off")
             self.mode = "off"
             self.database.set("cooling_status", "off")
