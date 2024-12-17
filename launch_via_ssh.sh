@@ -1,0 +1,1 @@
+screen -dmS flask python3 main.py
