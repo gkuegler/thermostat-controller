@@ -5,6 +5,7 @@ Be very careful.
 """
 
 import threading
+import platform
 
 import http_client
 import control
@@ -13,14 +14,20 @@ import cmd_shell
 import arduino
 import flask_app
 
-# TODO: need single parameter definitions to ensure type safety
+# TODO: need single parameter definitions to ensure type safety carried over to web interface
 # e.g. {"sp":74, "sp.type":float, "sp.min":68, "sp.max":80, "sp.step":0.5}
 # make a database verify types on database construction
 
 FLASK_LAN_ENABLED = True
+
+# When set to false, Flask will continuously scan my
+# repository and auto reload on code change.
 FLASK_NO_RELOAD = True
+
 BAUD_RATE = 9600
-PORT = "COM5"
+
+PORT = ("COM5") if (s := platform.system()) == "Windows" else (
+    "/dev/ttyACM0" if s == "Linux" else None)
 
 db = Database(
     name="data",
@@ -32,7 +39,8 @@ db = Database(
         "threshold": 1.5,
         "sample_count": 3,
         "http_enabled": True,
-        # Status parameters set by the running program.
+
+  # Status parameters set by the running program.
         "current_temp": 0.0,
         "cooling_status": "off",
         "current_humidity": 111
