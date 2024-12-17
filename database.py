@@ -2,7 +2,6 @@ import json
 import os
 import logging
 from threading import Lock
-
 from typing import TypeAlias
 
 Serializable: TypeAlias = int | float | dict | list | str
