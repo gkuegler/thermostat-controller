@@ -2,8 +2,18 @@ import time
 from threading import Lock
 
 
-class CycleTimeLogger:
+class CycleTimeLoggerBase:
+    def __init__(self):
+        pass
 
+    def log_on(self):
+        pass
+
+    def log_off(self):
+        pass
+
+
+class CycleTimeLogger:
     def __init__(self):
         self.time_on = 0
         self.time_off = 0
@@ -14,7 +24,7 @@ class CycleTimeLogger:
         if not self.mode == 'on':
             self.mode = 'on'
             self.time_on = time.time()
-            off_duration = (self.time_on - self.time_off) / 60.0
+            off_duration = (self.time_on - self.time_off)/60.0
             with open(self.fname, 'at') as f:
                 f.write(f"duration off: {off_duration:.2f}\n")
 
@@ -22,7 +32,7 @@ class CycleTimeLogger:
         if not self.mode == 'off':
             self.mode = 'off'
             self.time_off = time.time()
-            on_duration = (self.time_off - self.time_on) / 60.0
+            on_duration = (self.time_off - self.time_on)/60.0
             with open(self.fname, 'at') as f:
                 f.write(f"duration on: {on_duration:.2f}\n")
 
@@ -31,17 +41,16 @@ class SlidingWindowAverageCooling(object):
     """
     docstring
     """
-
     def __init__(self, database, sample_count, cb_above, cb_below):
         self.database = database
         self.sample_count = sample_count
         self.cb_above = cb_above  # callback
         self.cb_below = cb_below  # callback
 
-        self.samples = [None] * sample_count
+        self.samples = [None]*sample_count
         self.index = 0
         self.mode = "off"
-        self.cycle_logger = CycleTimeLogger()
+        self.cycle_logger = CycleTimeLoggerBase()
         self.mutext = Lock()
 
     def increment_index(self):
@@ -69,7 +78,7 @@ class SlidingWindowAverageCooling(object):
                 sum += x
             else:
                 return None
-        return sum / float(len(self.samples))
+        return sum/float(len(self.samples))
 
     def update(self, sample, humidity):
         if isinstance(sample, (int, float)):
@@ -110,17 +119,16 @@ class SlidingWindowAverageHeating(object):
     """
     docstring
     """
-
     def __init__(self, database, sample_count, cb_above, cb_below):
         self.database = database
         self.sample_count = sample_count
         self.cb_above = cb_above  # callback
         self.cb_below = cb_below  # callback
 
-        self.samples = [None] * sample_count
+        self.samples = [None]*sample_count
         self.index = 0
         self.mode = "off"
-        self.cycle_logger = CycleTimeLogger()
+        self.cycle_logger = CycleTimeLoggerBase()
         self.mutext = Lock()
 
     def increment_index(self):
@@ -148,7 +156,7 @@ class SlidingWindowAverageHeating(object):
                 sum += x
             else:
                 return None
-        return sum / float(len(self.samples))
+        return sum/float(len(self.samples))
 
     def update(self, sample, humidity):
         if isinstance(sample, (int, float)):
