@@ -44,3 +44,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable thermostat
 sudo systemctl start thermostat
 sudo systemctl status thermostat
+
+# Hostname Resolution
+The router can use a mix of protocols to determine the hostnames. It can be a mix of DNS, mDNS, reverse DNS (that actually uses DNS), DHCP requests and maybe something else.
