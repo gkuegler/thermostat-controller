@@ -1,5 +1,6 @@
 import time
 from threading import Lock
+from sql import SQL
 
 
 class CycleTimeLoggerBase:
@@ -119,11 +120,12 @@ class SlidingWindowAverageHeating(object):
     """
     docstring
     """
-    def __init__(self, database, sample_count, cb_above, cb_below):
+    def __init__(self, database, sample_count, cb_above, cb_below, sql=None):
         self.database = database
         self.sample_count = sample_count
         self.cb_above = cb_above  # callback
         self.cb_below = cb_below  # callback
+        self.sql = sql
 
         self.samples = [None]*sample_count
         self.index = 0
@@ -191,6 +193,14 @@ class SlidingWindowAverageHeating(object):
 
         elif self.mode == "off":
             self.cb_below()
+
+        # Only record when actual trigger is sent to turn on heat/ac.
+
+        mode = 'true' if self.database[
+            "http_enabled"] and self.mode == 'on' else 'false'
+
+        if isinstance(self.sql, SQL):
+            self.sql.insert("test2", t=value, rh=humidity, sp=sp, mode=mode)
 
 
 if __name__ == '__main__':

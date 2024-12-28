@@ -2,3 +2,4 @@ pyserial
 flask
 cmd
 json
+pygresql

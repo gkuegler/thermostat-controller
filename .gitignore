@@ -1,6 +1,7 @@
 # PROJECT SPECIFIC
 data.json
 cycle time data.txt
+creds.txt
 
 # PYTHON
 .venv/

@@ -13,6 +13,7 @@ from database import Database
 import cmd_shell
 import arduino
 import flask_app
+from sql import SQL
 
 # TODO: need single parameter definitions to ensure type safety carried over to web interface
 # e.g. {"sp":74, "sp.type":float, "sp.min":68, "sp.max":80, "sp.step":0.5}
@@ -46,6 +47,11 @@ db = Database(
         "current_humidity": 111
     })
 
+try:
+    sql = SQL("test1", use_creds=True)
+except:
+    sql = None
+
 http = http_client.Client(db)
 http.set_timeout(30)
 db["http_enabled"] = False
@@ -55,7 +61,7 @@ ctrl = control.SlidingWindowAverageHeating(
     sample_count=db["sample_count"],
     cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
     cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
-)
+    sql=sql)
 
 device = arduino.Arduino(PORT, BAUD_RATE, ctrl)
 device.start()
