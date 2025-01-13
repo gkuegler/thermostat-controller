@@ -2,6 +2,7 @@
 data.json
 cycle time data.txt
 creds.txt
+*.log
 
 # PYTHON
 .venv/

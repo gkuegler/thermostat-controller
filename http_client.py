@@ -12,7 +12,6 @@ class Request:
 
 
 class Client:
-
     def __init__(self, database):
         self.db = database
 
@@ -57,6 +56,8 @@ class Client:
             except TimeoutError:
                 print("Connection timed out.")
                 return None
+            except OSError:
+                print("OS Error: Can't Connect to Network.")
         else:
             print(f"[mock]{method}: {host}{path}::{port} -- {body}")
             return None
@@ -67,7 +68,7 @@ class Client:
 
 if __name__ == "__main__":
 
-    c = Client("esp32s3-therm.local", 80, enabled=True)
+    c = Client({"host": "10.0.0.10", "port": 80, "http_enabled": True})
     while True:
         c.request("GET", "/api/cooling/status")
         time.sleep(3)
