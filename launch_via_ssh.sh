@@ -1,1 +1,1 @@
-screen -dmS flask python3 main.py
+screen -dmS thermostat python3 main.py

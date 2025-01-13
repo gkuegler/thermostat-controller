@@ -3,6 +3,7 @@ Description=Thermostat Service
 After=network.target
 After=systemd-user-sessions.service
 After=network-online.target
+After=postgresql.service
 
 [Service]
 Type=forking

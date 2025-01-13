@@ -28,6 +28,7 @@ https://www.youtube.com/watch?v=9ySgYAb27FA
 
 1. Copy systemd service description file to systemd directory.
 sudo cp thermostat.service /etc/systemd/system/thermostat.service
+
 2. Verify service is enabled and works:
 sudo systemctl enable thermostat
 sudo systemctl status thermostat
