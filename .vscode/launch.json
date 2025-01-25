@@ -37,7 +37,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "flask_app.py",
+                "FLASK_APP": "src/flask_app.py",
                 "FLASK_DEBUG": "0"
             },
             "args": [

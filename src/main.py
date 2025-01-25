@@ -4,11 +4,13 @@ I use null terminated strings in my messages to the teensy.
 Be very careful.
 """
 
+import http
 import threading
 import platform
 import traceback
 import os
 import time
+import queue
 
 import http_client
 import control
@@ -18,14 +20,15 @@ import cmd_shell
 import arduino
 import flask_app
 from sql import SQL
+import event
 
 
-def control_loop(device, ctrl, db):
+def control_loop(sensor, ctrl, db, eventq, safety):
     filter = filters.SlidingAverage(3)
 
-    while (True):
+    while True:
         # Blocks for temp read.
-        t, rh = device.sample()
+        t, rh = sensor.sample()
         if t == None or rh == None:
             # Tell filter that pipelined data
             # is no longer valid.
@@ -37,6 +40,24 @@ def control_loop(device, ctrl, db):
         db["current_humidity"] = rh
 
         ctrl.update(filter.update(t), rh)
+
+        # Event handler.
+        while True:
+            try:
+                evt = eventq.get_nowait()
+                if evt == event.ON and db["http_enabled"]:
+                    safety.start()
+                if evt == event.OFF:
+                    safety.stop()
+                if evt == event.FAULT:
+                    print("FAULT: temp rise not fast enough.")
+                    db["fault_condition"] = "Error: Temp rise fault. Disabled HTTP."
+                    ctrl.mode = "off"
+                    ctrl.cb_above()
+                    db["http_enabled"] = False
+            except queue.Empty:
+                break
+    print("Control Loop Exited.")
 
 
 # TODO: need single parameter definitions to ensure type safety carried over to web interface
@@ -68,7 +89,8 @@ try:
             # Status parameters set by the running program.
             "current_temp": 0.0,
             "cooling_status": "off",
-            "current_humidity": 111
+            "current_humidity": 111,
+            "fault_condition": "none",
         })
 
     try:
@@ -80,16 +102,19 @@ try:
     http.set_timeout(30)
     db["http_enabled"] = False
 
-    ctrl = control.SlidingWindowAverageHeating(
+    eventq = queue.SimpleQueue()
+    ctrl = control.Heating(
         database=db,
+        eventq=eventq,
         cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
         cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
         sql=sql)
 
-    device = arduino.Arduino(PORT, BAUD_RATE)
+    sensor = arduino.Arduino(PORT, BAUD_RATE)
+    safety = control.RampProtection(db, eventq)
 
     cthread = threading.Thread(target=control_loop,
-                               args=(device, ctrl, db),
+                               args=(sensor, ctrl, db, eventq, safety),
                                daemon=True)
     cthread.start()
 
