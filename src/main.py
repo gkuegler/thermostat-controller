@@ -8,6 +8,7 @@ import threading
 import platform
 import traceback
 import os
+import time
 
 import http_client
 import control
@@ -16,6 +17,19 @@ import cmd_shell
 import arduino
 import flask_app
 from sql import SQL
+
+
+def control_loop(device, ctrl):
+    while (True):
+        # Blocks for temp read.
+        t, rh = device.sample()
+        if t == None or rh == None:
+            # Tell controller pipelined data is no longer
+            # valid in filters, dsp, etc.
+            ctrl.clear_buf()
+            time.sleep(2)
+        ctrl.update(t, rh)
+
 
 # TODO: need single parameter definitions to ensure type safety carried over to web interface
 # e.g. {"sp":74, "sp.type":float, "sp.min":68, "sp.max":80, "sp.step":0.5}
@@ -65,11 +79,14 @@ try:
         cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
         sql=sql)
 
-    device = arduino.Arduino(PORT, BAUD_RATE, ctrl)
-    device.start()
+    device = arduino.Arduino(PORT, BAUD_RATE)
 
-    shell = cmd_shell.CommandShell(db)
+    cthread = threading.Thread(target=control_loop,
+                               args=(device, ctrl),
+                               daemon=True)
+    cthread.start()
 
+    # Start Flask webserver.
     flask_app.set_database(db)
     app = flask_app.create_app()
     t = threading.Thread(target=flask_app.run_app,
@@ -77,6 +94,8 @@ try:
                          daemon=True)
     t.start()
 
+    # Main thread for controlling through shell.
+    shell = cmd_shell.CommandShell(db)
     shell.cmdloop()
 except Exception as ex:
     dir_path = os.path.dirname(os.path.realpath(__file__))

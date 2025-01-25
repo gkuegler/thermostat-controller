@@ -111,3 +111,4 @@ class SlidingWindowAverageHeating(object):
 
         if isinstance(self.sql, SQL):
             self.sql.insert("test2", t=value, rh=humidity, sp=sp, mode=mode)
+
