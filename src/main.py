@@ -12,6 +12,7 @@ import time
 
 import http_client
 import control
+import filters
 from database import Database
 import cmd_shell
 import arduino
@@ -19,16 +20,23 @@ import flask_app
 from sql import SQL
 
 
-def control_loop(device, ctrl):
+def control_loop(device, ctrl, db):
+    filter = filters.SlidingAverage(3)
+
     while (True):
         # Blocks for temp read.
         t, rh = device.sample()
         if t == None or rh == None:
-            # Tell controller pipelined data is no longer
-            # valid in filters, dsp, etc.
-            ctrl.clear_buf()
+            # Tell filter that pipelined data
+            # is no longer valid.
+            filter.clear_buf()
             time.sleep(2)
-        ctrl.update(t, rh)
+
+        # Update for webpage.
+        db["current_temp"] = t
+        db["current_humidity"] = rh
+
+        ctrl.update(filter.update(t), rh)
 
 
 # TODO: need single parameter definitions to ensure type safety carried over to web interface
@@ -74,7 +82,6 @@ try:
 
     ctrl = control.SlidingWindowAverageHeating(
         database=db,
-        sample_count=db["sample_count"],
         cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
         cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
         sql=sql)
@@ -82,7 +89,7 @@ try:
     device = arduino.Arduino(PORT, BAUD_RATE)
 
     cthread = threading.Thread(target=control_loop,
-                               args=(device, ctrl),
+                               args=(device, ctrl, db),
                                daemon=True)
     cthread.start()
 

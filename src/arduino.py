@@ -17,10 +17,16 @@ class Arduino:
             if not self.serial.is_open:
                 self.serial.open()
 
-            l = self.serial.readline().decode(encoding="ASCII").rstrip()
-            data = json.loads(l)
-            print(str(data["tempF"]) + "°F")
-            return data["tempF"], data["humidity"]
+            raw = self.serial.readline().decode(encoding="ASCII").rstrip()
+            data = json.loads(raw)
+
+            tempF = _t if isinstance(_t := data["tempF"],
+                                     (int, float)) else None
+            rh = _rh if isinstance(_rh := data["humidity"],
+                                   (int, float)) else None
+
+            print(str(tempF) + "°F")
+            return tempF, rh
         except json.JSONDecodeError:
             print("Message not valid json.")
         except serial.SerialException as ex:
