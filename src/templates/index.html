@@ -22,8 +22,13 @@
             </div>
             <div>
                 <p>Threshold: <output id="threshValue"></output> degF</p>
-                <input id="threshSlider" name="threshold" type="range" min="0" max="3" step="0.25"
+                <input id="threshSlider" name="threshold" type="range" min="0" max="6" step="0.5"
                     value="{{threshold}}" />
+            </div>
+            <div>
+                <p>Min Run Time: <output id="minRuntimeValue"></output> min</p>
+                <input id="minRuntimeSlider" name="min_runtime" type="range" min="5" max="15" step="1"
+                    value="{{min_runtime}}" />
             </div>
             <!-- <label>Timeout (s): </label><input type="number" name="timeout" min="0" max="30" value="31" /> -->
             <div>
@@ -41,19 +46,34 @@
 </body>
 <script>
     // map objects from existing html
+
+    // TEMPERATURE SEPOINT
     const tempValue = document.querySelector("#tempValue");
     const tempInput = document.querySelector("#tempSlider");
-    // initially sets the value
+
+    // Initially sets the value.
     tempValue.textContent = tempInput.value;
     tempValue.textContent = parseFloat(tempInput.value).toFixed(1);
     tempInput.addEventListener("input", (event) => {
         tempValue.textContent = parseFloat(event.target.value).toFixed(1);
     });
+
+    // TEMPERATURE THRESHOLD
     const threshValue = document.querySelector("#threshValue");
     const threshInput = document.querySelector("#threshSlider");
+    threshValue.textContent = threshValue.value;
     threshValue.textContent = parseFloat(threshInput.value).toFixed(2);
     threshInput.addEventListener("input", (event) => {
         threshValue.textContent = parseFloat(event.target.value).toFixed(2);
+    });
+
+    // MIN RUN TIME
+    const minRuntimeValue = document.querySelector("#minRuntimeValue");
+    const minRuntimeSlider = document.querySelector("#minRuntimeSlider");
+    minRuntimeValue.textContent = minRuntimeValue.value;
+    minRuntimeValue.textContent = parseFloat(minRuntimeSlider.value).toFixed(0);
+    minRuntimeSlider.addEventListener("input", (event) => {
+        minRuntimeValue.textContent = parseFloat(event.target.value).toFixed(0);
     });
 </script>
 

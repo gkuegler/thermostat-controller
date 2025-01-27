@@ -79,10 +79,16 @@ def create_app():
         input_data_mapping = {
             # "host": "10.0.0.10",
             # "port": 80,
-            "sp": float(request.form["sp"]),
-            "threshold": float(request.form["threshold"]),
-            "http_enabled": get_form_checkbox_value(request.form,
-                                                    "http_enabled")
+
+            # Form search uses the 'name' of the html element.
+            "sp":
+                float(request.form["sp"]),
+            "threshold":
+                float(request.form["threshold"]),
+            "http_enabled":
+                get_form_checkbox_value(request.form, "http_enabled"),
+            "min_runtime":
+                int(request.form["min_runtime"]),
         }
         db = get_database()
         db.update(input_data_mapping)

@@ -83,10 +83,13 @@ try:
             # User controlled parameters.
             "host": "10.0.0.10",
             "port": 80,
-            "sp": 65,
-            "threshold": 1.5,
-            "sample_count": 3,
-            "http_enabled": True,
+            "sp": 67,
+            "threshold": 3,
+            "sample_period": 10,  # FUTURE
+            "sample_count": 3,  # no. of smaples to average
+            "http_enabled": True,  # master enable/disable
+            "min_runtime": 5,  # min; for safety
+            "max_runtime": 20,  # min; for safety
 
             # Status parameters set by the running program.
             "current_temp": 0.0,  # sentinel value of 0.0
