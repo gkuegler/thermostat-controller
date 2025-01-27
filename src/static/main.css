@@ -1,8 +1,9 @@
 html {
     background-color: #000000;
     color: #eeeeee;
-    width: 75%;
-    border: #FFFFFF 1px solid;
+    /* width: 75%; */
+    max-width: 800px;
+    /* border: #FFFFFF 1px solid; */
     /* 
     * If (2) values are specified for 'margin' or 'padding',
     * then the (2) parameters refer to
@@ -23,8 +24,11 @@ div {
     text-align: center;
 }
 
+/* Input range. */
 :in-range{
     width: 90%
 }
-/* p{
-} */
+
+.underline  {
+    text-decoration:underline;
+}
