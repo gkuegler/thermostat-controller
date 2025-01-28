@@ -4,21 +4,24 @@ import cmd
 #     'Convert a series of zero or more numbers to an argument tuple'
 #     return tuple(map(int, arg.split()))
 
+# TODO: add logging cmd to pause log events to stdout
+
 
 class CommandShell(cmd.Cmd):
-    intro = 'Welcome to the HVAC terminal.\nType help or ? to list commands.\n'
-    prompt = '(control) '
+    intro = 'Welcome to the HVAC cmd terminal.\nType help or ? to list commands.\n'
+    prompt = '(hvac cmd) '
     file = None
 
     def __init__(self, database):
         super().__init__()
         self.db = database
 
-    # # ----- basic turtle commands -----
+    """
+    Help is auto-generated from function comments.
+    """
+
     # def do_help(self, arg):
-    #     'Move the turtle forward by the specified distance:  FORWARD 10'
-    #     # print(*parse(arg))
-    #     print(arg)
+    # pass
 
     def do_exit(self, arg):
         """Exit the program."""
@@ -32,22 +35,22 @@ class CommandShell(cmd.Cmd):
     #     pass
 
     def do_http(self, arg):
+        """Toggle HTTP variable.
+This has the effect of enabling/disabling control of
+the furnace by allowing/blocking http requests
+to the furnace relay mcu.\n"""
         self.db.set("http_enabled", not self.db["http_enabled"])
 
     def do_dump(self, arg):
+        """Display all variables.\n"""
+        print("-- Available Parameters --")
         print(self.db)
 
     def do_set(self, arg):
-        """
-        Set a value:
-        sp
-        threshold
-        timeout
-        host
-        port
-        """
+        """Set a variable. Use 'dump' commant to get list
+of variable names.\n"""
         key, value = arg.split()
-        #TODO: add value type lookup for type safety
+        #TODO: add value type lookup for type safety. See
         try:
             value = int(value)
         except:
@@ -59,7 +62,3 @@ class CommandShell(cmd.Cmd):
 
         if err := self.db.set(key, value):
             print(err)
-
-
-# if __name__ == '__main__':
-# CommandShell().cmdloop()
