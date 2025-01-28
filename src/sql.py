@@ -3,10 +3,7 @@ import os
 
 # TODO: Implement auto database retry?
 # Currently my service looks for db before it boots.
-
-CREDENTIAL_NAME = "creds.txt"
-CREDENTIAL_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                   CREDENTIAL_NAME)
+CREDENTIAL_FILENAME = os.path.join(os.getcwd(), "creds.txt")
 """
 Not specifying a 'host' defaults to unix sockets which is connection type 'local'.
 """
