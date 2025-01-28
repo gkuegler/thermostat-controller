@@ -74,7 +74,9 @@ try:
 
     PORT = ("COM5") if (s := platform.system()) == "Windows" else (
         "/dev/ttyACM0" if s == "Linux" else None)
-
+    """
+    I use no spaces in database names so that my 'cmd' interface can parse variabe names.
+    """
     db = Database(
         name="data",
         sample_data={
@@ -87,9 +89,9 @@ try:
             "http_enabled": True,
 
             # Status parameters set by the running program.
-            "current_temp": 0.0,
+            "current_temp": 0.0,  # sentinel value of 0.0
+            "current_humidity": 111,  # sentinel value of 111
             "cooling_status": "off",
-            "current_humidity": 111,
             "fault_condition": "none",
         })
 

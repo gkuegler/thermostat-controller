@@ -40,9 +40,6 @@ class Client:
                 print(
                     f"{method}:{host}{path}::{port} -- {body} => ({response.status}) {response.reason}"
                 )
-                # print("Body:", body)
-                # print("Status:", response.status)
-                # print("Reason:", response.reason)
 
                 # Read and print the response body
                 response_body = response.read().decode()
