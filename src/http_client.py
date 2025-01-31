@@ -2,22 +2,11 @@ from dataclasses import dataclass
 import http.client
 import time
 
-
-@dataclass
-class Request:
-    method: str
-    path: str
-    body = None
-
-
 class Client:
     def __init__(self, database):
         self.db = database
 
         self.endpoints = {}
-
-    # def register_endpoint(self, name, method, path, body=None):
-    #     self.endpoints[name] = Request(method, path, body)
 
     def request(self, method: str, path: str, body: str | None = None):
         # Create a connection to the server
