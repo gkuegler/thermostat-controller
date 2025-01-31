@@ -43,7 +43,6 @@ class Database:
     In process database class. Each instance if intended to have its own file
     in the data folder.
     """
-
     def __init__(self,
                  name: str,
                  sample_data: dict | None = None,
@@ -82,8 +81,7 @@ class Database:
         if self.use_file and not overwrite_with_sample_data:
             try:
                 self.data = load_json_from_file(
-                    self.file_path,
-                    allow_integers_as_keys=self.allow_integers_as_keys)
+                    self.file_path, allow_integers_as_keys=self.allow_integers_as_keys)
             # If the file does not exist, load in the sample data.
             # A new data file should be created whenever the key is
             # set through a voice command.
@@ -160,15 +158,14 @@ class Database:
     def load(self):
         try:
             self.data = load_json_from_file(
-                self.file_path,
-                allow_integers_as_keys=self.allow_integers_as_keys)
+                self.file_path, allow_integers_as_keys=self.allow_integers_as_keys)
             return True
         # If the file does not exist, load in the sample data.
         # A new data file should be created whenever the key is
         # set through a voice command.
         except FileNotFoundError:
-            print(f"{self.name} database -> Loading sample data.\n" +
-                  f"Couldn't find file: {self.file_path}")
+            print(f"{self.name} database -> Loading sample data.\n"
+                  + f"Couldn't find file: {self.file_path}")
             return False
         return False
 
@@ -182,9 +179,9 @@ class Database:
         self.save()
 
     def __str__(self):
-        BORDER = "-" * 30
-        return BORDER + "\n" + "\n".join(
-            f"{k}: {v}" for k, v in self.data.items()) + "\n" + BORDER
+        BORDER = "-"*30
+        return BORDER + "\n" + "\n".join(f"{k}: {v}"
+                                         for k, v in self.data.items()) + "\n" + BORDER
         # return f"Database(\"{self.name}\")"
 
 

@@ -4,9 +4,6 @@ import os
 # TODO: Implement auto database retry? with limit?
 # how many errors to report?
 CREDENTIAL_FILENAME = os.path.join(os.getcwd(), "creds.txt")
-"""
-Not specifying a 'host' defaults to unix sockets which is connection type 'local'.
-"""
 
 
 class SQL:
@@ -21,9 +18,12 @@ class SQL:
 
         # self.tablename = tablename
 
-        # Connect to DB
+        # Connect to DB.
+        # Not specifying a 'host' defaults to unix sockets which is connection type
+        # 'local'.
         self.db = DB(dbname=dbname, port=port, user=user, passwd=pw)
 
+        # TODO: test db access scenarios?
         # if not db.has_table_privilege(self.tablename, "insert"):
         #     raise RuntimeError(f"No SQL INSERT priviliges on table {self.tablename}")
 
@@ -38,5 +38,4 @@ class SQL:
         rh = 'NULL' if rh == None else rh
         sp = 'NULL' if sp == None else sp
         mode = 'NULL' if mode == None else mode
-        self.db.query(
-            f"INSERT INTO {table} VALUES ('now', {t}, {rh}, {sp}, '{mode}');")
+        self.db.query(f"INSERT INTO {table} VALUES ('now', {t}, {rh}, {sp}, '{mode}');")

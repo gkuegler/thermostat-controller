@@ -18,9 +18,10 @@ import log
 
 
 def control_loop(sensor, ctrl, db, eventq, safety):
-    # TODO: enforce explicit description of http hold-relay-closed messages and required timing
-    # report a fault if device could not be contacted
-    # report a fault if time between messages exceded (with a buffer period)
+    # TODO: enforce explicit description of http hold-relay-closed messages and required
+    # timing.
+    # Report a fault if device could not be contacted.
+    # Rreport a fault if time between messages exceded (with a buffer period).
     filter = filters.SlidingAverage(3)
     LOGGER = logging.getLogger("CtrlLoop")
 
@@ -62,8 +63,7 @@ def control_loop(sensor, ctrl, db, eventq, safety):
                 if evt == event.OFF:
                     safety.stop()
                 if evt == event.FAULT:
-                    LOGGER.error(
-                        "FAULT: temp rise not fast enough, dissabling http.")
+                    LOGGER.error("FAULT: temp rise not fast enough, dissabling http.")
                     db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
                     ctrl.mode = "off"
                     ctrl.cb_above()
@@ -92,8 +92,9 @@ def main():
     """
     I use no spaces in database names so that my 'cmd' interface can parse variabe names.
     """
-    # TODO: make a persistent and non-persistent section and getter & setter & publisher/subscriber interfaces.
-    # Use native attribs instead of dictionary interface?
+    # TODO: make a persistent and non-persistent section and getter & setter &
+    # publisher/subscriber interfaces. Use native attribs instead of dictionary
+    # interface?
     db = Database(
         name="data",
         sample_data={

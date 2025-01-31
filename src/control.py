@@ -17,7 +17,8 @@ class RampProtection:
         self.db = db
         self.check_period = 2*60  # seconds
         self.min_temp_rate = 0.2  # 1.5 deg/min to deg/s
-        # Time it takes for room to start raising temp after a call for heating or cooling.
+        # Time it takes for room to start raising temp after a call for heating
+        # or cooling.
         self.lag_time = 3*60
 
         self.thread = False
@@ -43,9 +44,9 @@ class RampProtection:
 
     def start_temp_monitor(self):
         """
-        I need to put in a timer based check system?
-        So a multithreaded individual check that wakes up when cycle time is engaged?
-        Like FreeRTOS?
+        I need to put in a timer based check system? So a multithreaded
+        individual check that wakes up when cycle time is engaged? Like
+        FreeRTOS?
 
         I need error conditions and a log system.
         """

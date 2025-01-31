@@ -13,7 +13,8 @@ class Arduino:
         # Sample rate controlled by arduino.
         # This thread blocks until next temp reading available.
         # Block for arduino to send serial communications.
-        # TODO: add a gibberish json counter to raise exception on repeat json decode fails
+        # TODO: add a gibberish json counter to raise exception on repeat
+        # json decode fails
         try:
             if not self.serial.is_open:
                 self.serial.open()
@@ -21,10 +22,8 @@ class Arduino:
             raw = self.serial.readline().decode(encoding="ASCII").rstrip()
             data = json.loads(raw)
 
-            tempF = _t if isinstance(_t := data["tempF"],
-                                     (int, float)) else None
-            rh = _rh if isinstance(_rh := data["humidity"],
-                                   (int, float)) else None
+            tempF = _t if isinstance(_t := data["tempF"], (int, float)) else None
+            rh = _rh if isinstance(_rh := data["humidity"], (int, float)) else None
 
             print(str(tempF) + "°F")
             return tempF, rh

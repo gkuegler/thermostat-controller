@@ -23,8 +23,8 @@ LOGGER = logging.getLogger("Flask")
 # Couldn't put this in HTML file becuase of the jinja template.
 # <!-- {{'%0.2f'|format(product_details.UnitPrice|float)}} formatting a 2 decimal float -->
 
-# Default data for html template, used for testing when app is loaded 'create_app' by flask.
-# Flask module automatically calls 'create_app' before if name==main block runs.
+# Default data for html template, used for testing when app is loaded 'create_app' by
+# flask. Flask module automatically calls 'create_app' before if name==main block runs.
 database = {
     "sp": 78,
     "threshold": 1,
@@ -59,8 +59,9 @@ def convert_bools_to_html_checkbox_values(d) -> dict:
 
 def get_form_checkbox_bool(form, name):
     """This is absolute insanity on the part of HTML forms.
-    Form doesn't return the name at all if the checkbox was checked and returns a "0" if the checkbox was checked.
-    'NoneType' is returned from '.get()' if not found."""
+    Form doesn't return the name at all if the checkbox was checked and returns
+    a "0" if the checkbox was checked. 'NoneType' is returned from '.get()' if
+    not found."""
     return True if form.get(name) == 'on' else False
 
 
@@ -74,8 +75,8 @@ def create_app():
         db = get_database()
 
         # Render Jinja template.
-        return flask.render_template(
-            'index.html', **convert_bools_to_html_checkbox_values(db))
+        return flask.render_template('index.html',
+                                     **convert_bools_to_html_checkbox_values(db))
 
     @app.route('/', methods=['POST'])
     def index_post():
@@ -83,14 +84,10 @@ def create_app():
         # TODO: temperature field can be 'None' which crashes flask.
         input_data_mapping = {
             # Form search uses the 'name' of the html element.
-            "sp":
-                float(request.form["sp"]),
-            "threshold":
-                float(request.form["threshold"]),
-            "http_enabled":
-                get_form_checkbox_bool(request.form, "http_enabled"),
-            "min_runtime":
-                int(request.form["min_runtime"]),
+            "sp": float(request.form["sp"]),
+            "threshold": float(request.form["threshold"]),
+            "http_enabled": get_form_checkbox_bool(request.form, "http_enabled"),
+            "min_runtime": int(request.form["min_runtime"]),
         }
         db = get_database()
         db.update(input_data_mapping)
