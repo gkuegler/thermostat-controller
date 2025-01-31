@@ -39,19 +39,23 @@ def control_loop(sensor, ctrl, db, eventq, safety):
 
         ctrl.update(filter.update(t), rh)
 
-        # Handle all queued events.
+        # Gaurd against event handlers generating an infinite
+        # circular chain of events.
         max_event_cnt = 50
+
+        # Handle all queued events.
         while True:
-            # Gaurd against event handlers generating an infinite
-            # circular chain of events.
+            max_event_cnt -= 1
             if max_event_cnt < 0:
                 LOGGER.critical("Max number of event handle limit reached. "
                                 "Possible circular logic error in code.")
+                db["fault_condition"] += "Too many events handled."
                 break
             # Python std queue.qsize() is not garunteed to be accurate.
             # To ensure handling of all queued events, try until exception.
             try:
                 evt = eventq.get_nowait()
+
                 # TODO: This doesn't trigger safety if http is enabled after event.ON generated.
                 if evt == event.ON and db["http_enabled"]:
                     safety.start()
@@ -60,7 +64,7 @@ def control_loop(sensor, ctrl, db, eventq, safety):
                 if evt == event.FAULT:
                     LOGGER.error(
                         "FAULT: temp rise not fast enough, dissabling http.")
-                    db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP."
+                    db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
                     ctrl.mode = "off"
                     ctrl.cb_above()
                     db["http_enabled"] = False
@@ -135,8 +139,8 @@ def main():
     ctrl = control.Heating(
         database=db,
         eventq=eventq,
-        cb_above=lambda: http.request("POST", "/api/cooling/status", "enable"),
-        cb_below=lambda: http.request("POST", "/api/cooling/status", "disable"),
+        cb_on=lambda: http.request("POST", "/api/cooling/status", "enable"),
+        cb_off=lambda: http.request("POST", "/api/cooling/status", "disable"),
         sql=sql)
 
     sensor = arduino.Arduino(PORT, BAUD_RATE)
