@@ -3,7 +3,7 @@ import os
 
 # TODO: Implement auto database retry? with limit?
 # how many errors to report?
-CREDENTIAL_FILENAME = os.path.join(os.getcwd(), "creds.txt")
+CREDENTIAL_FILENAME = os.path.join(os.getcwd(), "postgresql.cred")
 
 
 class SQL:
