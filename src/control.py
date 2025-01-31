@@ -16,7 +16,7 @@ class RampProtection:
         self.eventq = eventq
         self.db = db
         self.check_period = 2*60  # seconds
-        self.min_temp_change = 0.4/60  # 1.5 deg/min to deg/s
+        self.min_temp_change = 0.2  # 1.5 deg/min to deg/s
         # Time it takes for room to start raising temp after a call for heating or cooling.
         self.lag_time = 3*60
 
@@ -53,22 +53,27 @@ class RampProtection:
             self._allowed_to_run = True
 
         self.LOGGER.debug("starting")
+        self.LOGGER.debug("pausing for lag phase")
 
         time.sleep(self.lag_time)
 
-        self.LOGGER.debug("lag time passed")
+        self.LOGGER.debug("resumed; lag phase ended")
 
         self.previous_time = time.time()
         self.previous_temp = self.db["current_temp"]
 
+        # TODO: remove sleeps because i can't restart quickly
+        time.sleep(self.check_period)
+
         while self.allowed_to_run():
             k = time.time()
+            # TODO: add global filtering to temperature
             t = self.db["current_temp"]
-            rate = abs(t - self.previous_temp)/(k - self.previous_time)
+            rate = (abs(t - self.previous_temp)*60)/(k - self.previous_time)
             self.previous_time = k
             self.previous_temp = t
 
-            self.LOGGER.debug(f"rate abs(°F/s): {rate}")
+            self.LOGGER.debug(f"rate abs(°F/m): {rate:.3f}")
 
             if rate < self.min_temp_change:
                 self.LOGGER.error("generating fault event")
