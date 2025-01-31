@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: main.py",
+            "name": "debugpy: main.py",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
@@ -13,49 +13,51 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python Debugger: app.py",
+            "name": "debugpy: app.py",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "src/app.py",
             "console": "integratedTerminal"
         },
-        {
-            "name": "Python Debugger: Flask Local",
-            "cwd": "${workspaceFolder}",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "flask",
-            "env": {
-                "FLASK_APP": "flask_app.py",
-                "FLASK_DEBUG": "1"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                // "--no-reload"
-            ],
-            "jinja": true,
-            "autoStartBrowser": true
-        },
-        {
-            "name": "Python Debugger: Flask LAN",
-            "cwd": "${workspaceFolder}",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "flask",
-            "env": {
-                "FLASK_APP": "src/flask_app.py",
-                "FLASK_DEBUG": "0"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload",
-                "--host=0.0.0.0"
-            ],
-            "jinja": true,
-            "autoStartBrowser": true
-        }
+        // TODO: I'm not really sure if these are relevant to dev anymore
+        // I should implement one config to test web interface only on localhost that scans for changes.
+        // {
+        //     "name": "debugpy: Flask Local",
+        //     "cwd": "${workspaceFolder}",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "module": "flask",
+        //     "env": {
+        //         "FLASK_APP": "flask_app.py",
+        //         "FLASK_DEBUG": "1"
+        //     },
+        //     "args": [
+        //         "run",
+        //         "--no-debugger",
+        //         // "--no-reload"
+        //     ],
+        //     "jinja": true,
+        //     "autoStartBrowser": true
+        // },
+        // {
+        //     "name": "debugpy: Flask LAN",
+        //     "cwd": "${workspaceFolder}",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "module": "flask",
+        //     "env": {
+        //         "FLASK_APP": "src/flask_app.py",
+        //         "FLASK_DEBUG": "0"
+        //     },
+        //     "args": [
+        //         "run",
+        //         "--no-debugger",
+        //         "--no-reload",
+        //         "--host=0.0.0.0"
+        //     ],
+        //     "jinja": true,
+        //     "autoStartBrowser": true
+        // }
     ]
 }
