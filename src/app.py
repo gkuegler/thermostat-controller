@@ -105,8 +105,8 @@ def main():
             "sample_period": 10,  # FUTURE
             "sample_count": 3,  # no. of smaples to average
             "http_enabled": True,  # master enable/disable
-            "min_runtime": 5,  # min; for safety
-            "max_runtime": 20,  # min; for safety
+            "min_runtime": 5,  # min
+            "max_runtime": 25,  # min TODO: rename to 'limit'
 
             # Status parameters set by the running program.
             "current_temp": 0.0,  # sentinel value of 0.0

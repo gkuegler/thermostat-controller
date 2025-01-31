@@ -55,6 +55,8 @@ class RampProtection:
         self.LOGGER.debug("starting")
         self.LOGGER.debug("pausing for lag phase")
 
+        start = time.time()
+
         time.sleep(self.lag_time)
 
         self.LOGGER.debug("resumed; lag phase ended")
@@ -80,6 +82,11 @@ class RampProtection:
                 self.eventq.put(event.FAULT)
                 self.stop()
                 return
+
+            if ((k - start)*60) > self.db["max_runtime"]:
+                self.LOGGER.error("FAULT: max runtime exceeded")
+                self.eventq.put(event.FAULT)
+                self.stop()
 
             time.sleep(self.check_period)
 
