@@ -96,12 +96,7 @@ class Heating(object):
     """
     docstring
     """
-    def __init__(self,
-                 database,
-                 eventq=None,
-                 cb_on=None,
-                 cb_off=None,
-                 sql=None):
+    def __init__(self, database, eventq=None, cb_on=None, cb_off=None, sql=None):
         self.db = database
         self.eventq = eventq
         self.cb_on = cb_on  # callback to turn heating on
@@ -127,12 +122,14 @@ class Heating(object):
             if self.eventq:
                 self.eventq.put(event.ON)
         # Explicitly not requre heater to be on to turn it off.
+        # TODO: combine ramp control with this class to make a Furnace controller?
         elif sample > (sp + threshold):
-            self.LOGGER.info("call for off")
+            if self.mode == "on":
+                self.LOGGER.info("call for off")
+                if self.eventq:
+                    self.eventq.put(event.OFF)
             self.mode = "off"
             self.db.set("cooling_status", "off")
-            if self.mode == "on" and self.eventq:
-                self.eventq.put(event.OFF)
         else:
             print("Threshold")
 
@@ -145,8 +142,7 @@ class Heating(object):
 
         # Only record when actual trigger is sent to turn on heat/ac.
         # TODO: convert to 1's and 0's for averages in grafana to work
-        mode = 'true' if self.db[
-            "http_enabled"] and self.mode == 'on' else 'false'
+        mode = 'true' if self.db["http_enabled"] and self.mode == 'on' else 'false'
 
         if isinstance(self.sql, SQL):
             self.sql.insert("test2", t=sample, rh=humidity, sp=sp, mode=mode)
