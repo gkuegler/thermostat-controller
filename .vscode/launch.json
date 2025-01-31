@@ -8,8 +8,16 @@
             "name": "Python Debugger: main.py",
             "type": "debugpy",
             "request": "launch",
-            "cwd": "${workspaceFolder}/src/",
-            "program": "main.py",
+            "cwd": "${workspaceFolder}",
+            "program": "src/main.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python Debugger: app.py",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "src/app.py",
             "console": "integratedTerminal"
         },
         {

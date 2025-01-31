@@ -42,6 +42,11 @@
         <p>Mode: {{cooling_status}}</p>
         <p>FAULTS:</p>
         <P>{{fault_condition}}</p>
+        <!-- This button sends a POST on refresh if I used the submit button with no redirect. -->
+        <!-- <button onClick="window.location.reload();">Clear Faults</button> -->
+        <form action="/clearfaults" method="POST">
+            <button type="submit" name="cleaFaults">Clear Faults</button>
+        </form>
     </div>
 </body>
 <script>

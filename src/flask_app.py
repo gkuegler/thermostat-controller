@@ -1,6 +1,9 @@
+import logging
 import flask
 
 from flask import request
+
+LOGGER = logging.getLogger("Flask")
 
 # class WebApp:
 
@@ -35,7 +38,7 @@ database = {
 def set_database(db):
     global database
     database = db
-    print(f"db set: {database}")
+    LOGGER.debug(f"db set: {database}")
 
 
 def get_database():
@@ -50,11 +53,11 @@ def type_map(v):
         return v
 
 
-def convert_py_datatypes_to_html_datatypes(d) -> dict:
+def convert_bools_to_html_checkbox_values(d) -> dict:
     return {k: type_map(v) for k, v in d.items()}
 
 
-def get_form_checkbox_value(form, name):
+def get_form_checkbox_bool(form, name):
     """This is absolute insanity on the part of HTML forms.
     Form doesn't return the name at all if the checkbox was checked and returns a "0" if the checkbox was checked.
     'NoneType' is returned from '.get()' if not found."""
@@ -66,27 +69,25 @@ def create_app():
 
     app = flask.Flask(__name__)
 
-    # a simple page that says hello
     @app.route('/', methods=['GET'])
     def index_get():
         db = get_database()
+
+        # Render Jinja template.
         return flask.render_template(
-            'index.html', **convert_py_datatypes_to_html_datatypes(db))
+            'index.html', **convert_bools_to_html_checkbox_values(db))
 
     @app.route('/', methods=['POST'])
     def index_post():
         # Transform form data from strings into desired datatypes.
         input_data_mapping = {
-            # "host": "10.0.0.10",
-            # "port": 80,
-
             # Form search uses the 'name' of the html element.
             "sp":
                 float(request.form["sp"]),
             "threshold":
                 float(request.form["threshold"]),
             "http_enabled":
-                get_form_checkbox_value(request.form, "http_enabled"),
+                get_form_checkbox_bool(request.form, "http_enabled"),
             "min_runtime":
                 int(request.form["min_runtime"]),
         }
@@ -94,24 +95,20 @@ def create_app():
         db.update(input_data_mapping)
         return flask.redirect('/')
 
+    @app.route('/clearfaults', methods=['POST'])
+    def clear_faults():
+        db = get_database()
+        db["fault_condition"] = ""
+        return flask.redirect('/')
+
     return app
 
 
 def run_app(app, lan_enabled, no_reload):
-    print("starting server")
+    LOGGER.debug("starting flask server")
     app.run(host="0.0.0.0" if lan_enabled else None,
             use_reloader=False if no_reload else None)
 
 
 if __name__ == "main":
     pass
-    # data = {
-    #     "temperature": 78,
-    #     "threshold": 1,
-    #     "timeout": 30,
-    #     "http_enabled": False,
-    # }
-
-    # set_database(data)
-    # app = create_app()
-    # app.run()

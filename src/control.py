@@ -1,3 +1,4 @@
+import logging
 import time
 from threading import Lock, Thread
 from sql import SQL
@@ -17,23 +18,28 @@ class RampProtection:
         self.check_period = 2*60  # seconds
         self.min_temp_change = 0.4/60  # 1.5 deg/min to deg/s
         # Time it takes for room to start raising temp after a call for heating or cooling.
-        # self.lag_time = 60*3  # seconds
-        self.lag_time = 10
+        self.lag_time = 3*60
 
         self.thread = False
-        self.allowed_to_run = False
+        self._allowed_to_run = False
         self.mutex = Lock()
 
         self.previous_time = 0
         self.previous_temp = 0
 
+        self.LOGGER = logging.getLogger("RampProtection")
+
     def stop(self):
         with self.mutex:
-            self.allowed_to_run = False
+            self._allowed_to_run = False
 
     def start(self):
         self.thread = Thread(target=self.start_temp_monitor, daemon=True)
         self.thread.start()
+
+    def allowed_to_run(self):
+        with self.mutex:
+            return self._allowed_to_run and self.db["http_enabled"]
 
     def start_temp_monitor(self):
         """
@@ -44,35 +50,31 @@ class RampProtection:
         I need error conditions and a log system.
         """
         with self.mutex:
-            self.allowed_to_run = True
+            self._allowed_to_run = True
 
-        start = time.time()
+        self.LOGGER.debug("starting")
 
-        while True:
-            with self.mutex:
-                if not self.allowed_to_run:
-                    break
-            # Start checking temperature differentials after the lag period.
-            if (time.time() - self.lag_time) > start:
-                break
-        print("lag time passed")
+        time.sleep(self.lag_time)
+
+        self.LOGGER.debug("lag time passed")
 
         self.previous_time = time.time()
         self.previous_temp = self.db["current_temp"]
 
-        while True:
-            with self.mutex:
-                if not self.allowed_to_run or not self.db["http_enabled"]:
-                    break
+        while self.allowed_to_run():
             k = time.time()
             t = self.db["current_temp"]
             rate = abs(t - self.previous_temp)/(k - self.previous_time)
             self.previous_time = k
             self.previous_temp = t
 
+            self.LOGGER.debug(f"rate abs(°F/s): {rate}")
+
             if rate < self.min_temp_change:
+                self.LOGGER.error("generating fault event")
                 self.eventq.put(event.FAULT)
                 self.stop()
+                return
 
             time.sleep(self.check_period)
 
@@ -94,6 +96,8 @@ class Heating(object):
         self.sql = sql
 
         self.mode = "off"
+
+        self.LOGGER = logging.getLogger("CtrlHeating")
 
     def update(self, sample, humidity):
         # Get current control parameters.
@@ -124,7 +128,6 @@ class Heating(object):
             self.cb_below()
 
         # Only record when actual trigger is sent to turn on heat/ac.
-
         mode = 'true' if self.database[
             "http_enabled"] and self.mode == 'on' else 'false'
 
