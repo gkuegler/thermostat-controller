@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import http.client
 import time
-import threading
 
 
 @dataclass

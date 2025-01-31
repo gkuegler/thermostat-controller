@@ -1,8 +1,8 @@
 from pg import DB
 import os
 
-# TODO: Implement auto database retry?
-# Currently my service looks for db before it boots.
+# TODO: Implement auto database retry? with limit?
+# how many errors to report?
 CREDENTIAL_FILENAME = os.path.join(os.getcwd(), "creds.txt")
 """
 Not specifying a 'host' defaults to unix sockets which is connection type 'local'.
@@ -33,6 +33,7 @@ class SQL:
         # print(time.strftime(f, now))
         # INSERT INTO test2 VALUES (CAST('2024-12-28 15:52:13 EST' AS TIMESTAMP WITH TIME ZONE), 67.35, 46.2);
         # self.db.query(INSERT INTO test2 VALUES (CAST('2024-12-28 15:52:13 EST' AS TIMESTAMP WITH TIME ZONE), 67.35, 46.2);
+        # TODO: use 'isintance' for ints & floats
         t = 'NULL' if t == None else t
         rh = 'NULL' if rh == None else rh
         sp = 'NULL' if sp == None else sp

@@ -18,6 +18,9 @@ import log
 
 
 def control_loop(sensor, ctrl, db, eventq, safety):
+    # TODO: enforce explicit description of http hold-relay-closed messages and required timing
+    # report a fault if device could not be contacted
+    # report a fault if time between messages exceded (with a buffer period)
     filter = filters.SlidingAverage(3)
     LOGGER = logging.getLogger("CtrlLoop")
 
@@ -85,6 +88,8 @@ def main():
     """
     I use no spaces in database names so that my 'cmd' interface can parse variabe names.
     """
+    # TODO: make a persistent and non-persistent section and getter & setter & publisher/subscriber interfaces.
+    # Use native attribs instead of dictionary interface?
     db = Database(
         name="data",
         sample_data={
@@ -116,7 +121,14 @@ def main():
         sql = None
 
     http = http_client.Client(db)
+
+    # This is the keep-alive timeout for the furnace microcontroller.
+    # The furnace microcontroller disables itself if an
+    # enable POST isn't continuously sent faster than the timeout.
+    db["http_enabled"] = True
     http.set_timeout(30)
+
+    # Always disable on boot. This may change in future.
     db["http_enabled"] = False
 
     eventq = queue.SimpleQueue()
