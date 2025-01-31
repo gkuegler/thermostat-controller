@@ -16,7 +16,7 @@ class RampProtection:
         self.eventq = eventq
         self.db = db
         self.check_period = 2*60  # seconds
-        self.min_temp_change = 0.2  # 1.5 deg/min to deg/s
+        self.min_temp_rate = 0.2  # 1.5 deg/min to deg/s
         # Time it takes for room to start raising temp after a call for heating or cooling.
         self.lag_time = 3*60
 
@@ -69,14 +69,14 @@ class RampProtection:
             k = time.time()
             # TODO: add global filtering to temperature
             t = self.db["current_temp"]
-            rate = (abs(t - self.previous_temp)*60)/(k - self.previous_time)
+            rate = ((t - self.previous_temp)*60)/(k - self.previous_time)
             self.previous_time = k
             self.previous_temp = t
 
             self.LOGGER.debug(f"rate abs(°F/m): {rate:.3f}")
 
-            if rate < self.min_temp_change:
-                self.LOGGER.error("generating fault event")
+            if rate < self.min_temp_rate:
+                self.LOGGER.error("FAULT: temp rise rate not met")
                 self.eventq.put(event.FAULT)
                 self.stop()
                 return
@@ -91,13 +91,13 @@ class Heating(object):
     def __init__(self,
                  database,
                  eventq=None,
-                 cb_above=None,
-                 cb_below=None,
+                 cb_on=None,
+                 cb_off=None,
                  sql=None):
-        self.database = database
+        self.db = database
         self.eventq = eventq
-        self.cb_above = cb_above  # callback
-        self.cb_below = cb_below  # callback
+        self.cb_on = cb_on  # callback to turn heating on
+        self.cb_off = cb_off  # callback to turn heating off
         self.sql = sql
 
         self.mode = "off"
@@ -106,34 +106,38 @@ class Heating(object):
 
     def update(self, sample, humidity):
         # Get current control parameters.
-        sp = self.database["sp"]
-        threshold = self.database["threshold"]
+        sp = self.db["sp"]
+        threshold = self.db["threshold"]
 
         if sample == None:
             return
 
-        if sample < sp:
-            if self.mode == "off" and self.eventq:
-                self.eventq.put(event.ON)
+        # Only turn on unless it was off before.
+        if sample < sp and self.db["http_enabled"] and self.mode == "off":
             self.mode = "on"
-            self.database.set("cooling_status", "on")
+            self.db.set("cooling_status", "on")  # only for web UI
+            if self.eventq:
+                self.eventq.put(event.ON)
+        # Explicitly not requre heater to be on to turn it off.
         elif sample > (sp + threshold):
+            self.LOGGER.info("call for off")
+            self.mode = "off"
+            self.db.set("cooling_status", "off")
             if self.mode == "on" and self.eventq:
                 self.eventq.put(event.OFF)
-            self.mode = "off"
-            self.database.set("cooling_status", "off")
         else:
             print("Threshold")
 
         # Hold relay open or closed.
-        if self.mode == "on" and self.cb_above:
-            self.cb_above()
+        if self.mode == "on" and self.cb_on:
+            self.cb_on()
 
-        elif self.mode == "off" and self.cb_below:
-            self.cb_below()
+        elif self.mode == "off" and self.cb_off:
+            self.cb_off()
 
         # Only record when actual trigger is sent to turn on heat/ac.
-        mode = 'true' if self.database[
+        # TODO: convert to 1's and 0's for averages in grafana to work
+        mode = 'true' if self.db[
             "http_enabled"] and self.mode == 'on' else 'false'
 
         if isinstance(self.sql, SQL):
