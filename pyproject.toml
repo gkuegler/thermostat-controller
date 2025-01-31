@@ -1,18 +1,8 @@
-[tool.black]
-extend-exclude = '''
-# A regex preceded with ^/ will apply only to files and directories
-# in the root of the project.
-^/foo.py  # exclude a file named foo.py in the root of the project (in addition to the defaults)
-'''
-include = '\.pyi?$'
-line-length = 72
-target-version = ['py38']
-
 [tool.yapf]
 based_on_style                              = "pep8"
 blank_line_before_nested_class_or_def       = false
 coalesce_brackets                           = true
-column_limit                                = 80
+column_limit                                = 88
 indent_dictionary_value                     = true
 no_spaces_around_selected_binary_operators  = "*,/"
 spaces_before_comment                       = 2
