@@ -80,6 +80,7 @@ def create_app():
     @app.route('/', methods=['POST'])
     def index_post():
         # Transform form data from strings into desired datatypes.
+        # TODO: temperature field can be 'None' which crashes flask.
         input_data_mapping = {
             # Form search uses the 'name' of the html element.
             "sp":

@@ -6,7 +6,8 @@ def set_up_main_logger(log_path,
                        file_log_level=logging.DEBUG):
     DEFAULT_STYLE = "{"  # use f-string like interpolation in formatting
     DEFAULT_FORMAT = "[{asctime}][{name}][{levelname}] {message}"
-    DEFAULT_DATE_FORMAT = "%H:%M"
+    # TODO: add seconds
+    DEFAULT_DATE_FORMAT = "%d/%m %H:%M:%S"  # add seconds
 
     DEFAULT_FORMATTER = logging.Formatter(fmt=DEFAULT_FORMAT,
                                           datefmt=DEFAULT_DATE_FORMAT,
