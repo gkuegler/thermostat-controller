@@ -13,6 +13,7 @@ class Arduino:
         # Sample rate controlled by arduino.
         # This thread blocks until next temp reading available.
         # Block for arduino to send serial communications.
+        # TODO: add a gibberish json counter to raise exception on repeat json decode fails
         try:
             if not self.serial.is_open:
                 self.serial.open()
@@ -31,6 +32,7 @@ class Arduino:
             print("Message not valid json.")
         except serial.SerialException as ex:
             if ex.errno == 2:
+                # TODO: generate fault event
                 print(f"Error Arduino not connected.")
             else:
                 print(ex)
