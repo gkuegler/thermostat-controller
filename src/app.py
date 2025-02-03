@@ -126,8 +126,8 @@ def main():
             "threshold": 3,
             "sample_period": 10,  # FUTURE
             "sample_count": 3,  # no. of smaples to average
-            "http_enabled": True,  # master enable/disable
-            "controller_enabled": True,
+            "http_enabled": False,  # master enable/disable
+            "controller_enabled": False,
             "min_runtime": 5,  # min
             "max_runtime": 25,  # min TODO: rename to 'limit'
 

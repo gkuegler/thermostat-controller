@@ -26,12 +26,23 @@ LOGGER = logging.getLogger("Flask")
 # Default data for html template, used for testing when app is loaded 'create_app' by
 # flask. Flask module automatically calls 'create_app' before if name==main block runs.
 database = {
-    "sp": 78,
-    "threshold": 1,
-    "timeout": 30,
-    "http_enabled": False,
-    "current_temp": 0,
+    # User controlled parameters.
+    "host": "10.0.0.10",
+    "port": 80,
+    "sp": 67,
+    "threshold": 3,
+    "sample_period": 10,  # FUTURE
+    "sample_count": 3,  # no. of smaples to average
+    "http_enabled": False,  # master enable/disable
+    "controller_enabled": False,
+    "min_runtime": 5,  # min
+    "max_runtime": 25,  # min TODO: rename to 'limit'
+
+    # Status parameters set by the running program.
+    "current_temp": 0.0,  # sentinel value of 0.0
+    "current_humidity": 111,  # sentinel value of 111
     "cooling_status": "off",
+    "fault_condition": "none",
 }
 
 
