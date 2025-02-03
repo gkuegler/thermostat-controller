@@ -5,6 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
+            /*
+            Catch exceptions.
+            */
             "name": "debugpy: main.py",
             "type": "debugpy",
             "request": "launch",
@@ -13,6 +16,9 @@
             "console": "integratedTerminal"
         },
         {
+            /*
+            Don't catch exceptions.
+            */
             "name": "debugpy: app.py",
             "type": "debugpy",
             "request": "launch",
@@ -20,44 +26,27 @@
             "program": "src/app.py",
             "console": "integratedTerminal"
         },
-        // TODO: I'm not really sure if these are relevant to dev anymore
-        // I should implement one config to test web interface only on localhost that scans for changes.
-        // {
-        //     "name": "debugpy: Flask Local",
-        //     "cwd": "${workspaceFolder}",
-        //     "type": "debugpy",
-        //     "request": "launch",
-        //     "module": "flask",
-        //     "env": {
-        //         "FLASK_APP": "flask_app.py",
-        //         "FLASK_DEBUG": "1"
-        //     },
-        //     "args": [
-        //         "run",
-        //         "--no-debugger",
-        //         // "--no-reload"
-        //     ],
-        //     "jinja": true,
-        //     "autoStartBrowser": true
-        // },
-        // {
-        //     "name": "debugpy: Flask LAN",
-        //     "cwd": "${workspaceFolder}",
-        //     "type": "debugpy",
-        //     "request": "launch",
-        //     "module": "flask",
-        //     "env": {
-        //         "FLASK_APP": "src/flask_app.py",
-        //         "FLASK_DEBUG": "0"
-        //     },
-        //     "args": [
-        //         "run",
-        //         "--no-debugger",
-        //         "--no-reload",
-        //         "--host=0.0.0.0"
-        //     ],
-        //     "jinja": true,
-        //     "autoStartBrowser": true
-        // }
+        {
+            /*
+            Flask has javascript debuggers and other features if I launch through the Flask
+            module interface.
+            TODO: get debugpy stepthrough debugger working
+            https://flask.palletsprojects.com/en/stable/debugging/
+            */
+            "name": "Flask Debug on LAN",
+            "cwd": "${workspaceFolder}",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "src/flask_app.py",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--host=0.0.0.0"
+            ],
+            "jinja": true,
+        }
     ]
 }

@@ -1,6 +1,6 @@
 import logging
+from pkgutil import get_data
 import flask
-
 from flask import request
 
 LOGGER = logging.getLogger("Flask")
@@ -47,6 +47,7 @@ def get_database():
 
 
 def type_map(v):
+    # TODO: utilize parameter type safety via inflection.
     if isinstance(v, bool):
         return "checked" if v else ""
     else:
@@ -65,8 +66,12 @@ def get_form_checkbox_bool(form, name):
     return True if form.get(name) == 'on' else False
 
 
+"""
+Flask interface?
+"""
+
+
 def create_app():
-    global database
 
     app = flask.Flask(__name__)
 
@@ -86,8 +91,7 @@ def create_app():
             # Form search uses the 'name' of the html element.
             "sp": float(request.form["sp"]),
             "threshold": float(request.form["threshold"]),
-            "http_enabled": get_form_checkbox_bool(request.form, "http_enabled"),
-            "min_runtime": int(request.form["min_runtime"]),
+            "controller_enabled": get_form_checkbox_bool(request.form, "http_enabled"),
         }
         db = get_database()
         db.update(input_data_mapping)
@@ -96,17 +100,15 @@ def create_app():
     @app.route('/clearfaults', methods=['POST'])
     def clear_faults():
         db = get_database()
-        db["fault_condition"] = ""
+        db.update({"fault_condition": ""})
         return flask.redirect('/')
 
     return app
 
 
-def run_app(app, lan_enabled, no_reload):
+def run_app(app, host_on_lan, no_reload):
     LOGGER.debug("starting flask server")
-    app.run(host="0.0.0.0" if lan_enabled else None,
+    # Note: can't use 'debu=True' because signal only works in the main thread of the
+    # interpreter.'
+    app.run(host="0.0.0.0" if host_on_lan else None,
             use_reloader=False if no_reload else None)
-
-
-if __name__ == "main":
-    pass

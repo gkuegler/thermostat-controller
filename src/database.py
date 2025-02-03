@@ -51,6 +51,7 @@ class Database:
                  allowed_to_write: bool = True,
                  log_level: str = "info",
                  allow_integers_as_keys: bool = True):
+        # TODO: make option to use file but never overwrite with sample data?
         """
         Constructor.
 
@@ -71,6 +72,9 @@ class Database:
         sample_data = sample_data if sample_data else {}
 
         self.data = {}  # underlying database data
+
+        # Hoist interface.
+        self.update = self.data.update
         """
         Scenarios:
         - file doesn't exist -> create if using a file
@@ -143,9 +147,6 @@ class Database:
 
     def keys(self):
         return self.data.keys()
-
-    def update(self, d: dict[str | int, Serializable]):
-        self.data.update(d)
 
     def set_defaults(self, d: dict):
         for key, value in d.items():

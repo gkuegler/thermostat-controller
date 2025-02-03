@@ -17,28 +17,50 @@ import event
 import log
 
 
-def control_loop(sensor, ctrl, db, eventq, safety):
+def control_loop(controller, db, eventq):
     # TODO: enforce explicit description of http hold-relay-closed messages and required
     # timing.
     # Report a fault if device could not be contacted.
     # Rreport a fault if time between messages exceded (with a buffer period).
-    filter = filters.SlidingAverage(3)
+    BAUD_RATE = 9600
+    PORT = ("COM5") if (s := platform.system()) == "Windows" else (
+        "/dev/ttyACM0" if s == "Linux" else None)
+    SAMPLE_PERIOD_UPPER_WARNING_S = 15  # seconds
     LOGGER = logging.getLogger("CtrlLoop")
 
+    filter = filters.SlidingAverage(3)
+    sensor = arduino.Arduino(PORT, BAUD_RATE)
+    safety = control.RampProtection(db, eventq)
+
+    try:
+        sql = SQL("test1", use_creds=True)
+    except:
+        sql = None
+
     while True:
+        start = time.time()
         # Blocks for temp read.
         t, rh = sensor.sample()
         if t == None or rh == None:
             # Tell filter that pipelined data
             # is no longer valid.
             filter.clear_buf()
-            time.sleep(2)
+            time.sleep(0.1)
+            continue
+
+        # TODO: make average handler work with datapoints as it gets them.
+        mode = controller.update(filter.update(t))
 
         # Update for webpage.
         db["current_temp"] = t
         db["current_humidity"] = rh
 
-        ctrl.update(filter.update(t), rh)
+        # Only record when actual trigger is sent to turn on heat/ac.
+        # TODO: convert to 1's and 0's for averages in grafana to work
+        mode = 'true' if mode == 'on' else 'false'
+
+        if isinstance(sql, SQL):
+            sql.insert("test2", t, rh, sp=db["sp"], mode=mode)
 
         # Gaurd against event handlers generating an infinite
         # circular chain of events.
@@ -55,23 +77,27 @@ def control_loop(sensor, ctrl, db, eventq, safety):
             # Python std queue.qsize() is not garunteed to be accurate.
             # Try until exception to ensure handling of all queued events.
             try:
-                evt = eventq.get_nowait()
-
-                # TODO: This doesn't trigger safety if http is enabled after event.ON generated.
-                if evt == event.ON and db["http_enabled"]:
-                    safety.start()
-                if evt == event.OFF:
-                    safety.stop()
-                if evt == event.FAULT:
-                    LOGGER.error("FAULT: temp rise not fast enough, dissabling http.")
-                    db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
-                    ctrl.mode = "off"
-                    ctrl.cb_above()
-                    db["http_enabled"] = False
+                match eventq.get_nowait():
+                    case event.ON:
+                        safety.start()
+                    case event.OFF:
+                        safety.stop()
+                    case event.FAULT:
+                        LOGGER.error(
+                            "FAULT: temp rise not fast enough, dissabling http.")
+                        db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
+                        controller.mode = "off"
+                        controller.cb_above()
+                        db["http_enabled"] = False
             except queue.Empty:
                 break
 
+        if (t := (time.time() - start)) > SAMPLE_PERIOD_UPPER_WARNING_S:
+            LOGGER.warning(f"Control loop exceded time limit. Took {t:.2f}s")
+            db["fault_condition"] += "Sample Period Exceded.\n"
+
     LOGGER.critical("Nonreachable Code: Control Loop Exited.")
+    db["fault_condition"] += "Control loop exited.\n"
 
 
 def main():
@@ -81,11 +107,6 @@ def main():
     # When set to false, Flask will continuously scan my
     # repository and auto reload on code change.
     FLASK_NO_RELOAD = True
-
-    BAUD_RATE = 9600
-
-    PORT = ("COM5") if (s := platform.system()) == "Windows" else (
-        "/dev/ttyACM0" if s == "Linux" else None)
 
     log.set_up_main_logger(
         os.path.splitext(__file__)[0] + ".log", logging.DEBUG, logging.DEBUG)
@@ -106,6 +127,7 @@ def main():
             "sample_period": 10,  # FUTURE
             "sample_count": 3,  # no. of smaples to average
             "http_enabled": True,  # master enable/disable
+            "controller_enabled": True,
             "min_runtime": 5,  # min
             "max_runtime": 25,  # min TODO: rename to 'limit'
 
@@ -120,11 +142,6 @@ def main():
     if CLEAR_FAULTS_ON_START:
         db["fault_condition"] = ""
 
-    try:
-        sql = SQL("test1", use_creds=True)
-    except:
-        sql = None
-
     http = http_client.Client(db)
 
     # This is the keep-alive timeout for the furnace microcontroller.
@@ -137,22 +154,19 @@ def main():
     db["http_enabled"] = False
 
     eventq = queue.SimpleQueue()
-    ctrl = control.Heating(
+    controller = control.Heating(
         database=db,
         eventq=eventq,
         cb_on=lambda: http.request("POST", "/api/cooling/status", "enable"),
-        cb_off=lambda: http.request("POST", "/api/cooling/status", "disable"),
-        sql=sql)
-
-    sensor = arduino.Arduino(PORT, BAUD_RATE)
-    safety = control.RampProtection(db, eventq)
+        cb_off=lambda: http.request("POST", "/api/cooling/status", "disable"))
 
     cthread = threading.Thread(target=control_loop,
-                               args=(sensor, ctrl, db, eventq, safety),
+                               args=(controller, db, eventq),
                                daemon=True)
     cthread.start()
 
     # Start Flask webserver.
+    # TODO: make threaded error handling report to stderr
     flask_app.set_database(db)
     app = flask_app.create_app()
     t = threading.Thread(target=flask_app.run_app,

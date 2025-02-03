@@ -96,33 +96,35 @@ class Heating(object):
     """
     docstring
     """
-    def __init__(self, database, eventq=None, cb_on=None, cb_off=None, sql=None):
+
+    # TODO: combine ramp control with this class to make a Furnace controller?
+    def __init__(self, database, eventq=None, cb_on=None, cb_off=None):
         self.db = database
         self.eventq = eventq
         self.cb_on = cb_on  # callback to turn heating on
         self.cb_off = cb_off  # callback to turn heating off
-        self.sql = sql
 
         self.mode = "off"
 
         self.LOGGER = logging.getLogger("CtrlHeating")
 
-    def update(self, sample, humidity):
+    def update(self, sample):
+        if not self.db["controller_enabled"]:
+            return None
+
+        if sample == None:
+            return None
+
         # Get current control parameters.
         sp = self.db["sp"]
         threshold = self.db["threshold"]
 
-        if sample == None:
-            return
-
         # Only turn on unless it was off before.
-        if sample < sp and self.db["http_enabled"] and self.mode == "off":
+        if sample < sp and self.mode == "off":
             self.mode = "on"
             self.db.set("cooling_status", "on")  # only for web UI
             if self.eventq:
                 self.eventq.put(event.ON)
-        # Explicitly not requre heater to be on to turn it off.
-        # TODO: combine ramp control with this class to make a Furnace controller?
         elif sample > (sp + threshold):
             if self.mode == "on":
                 self.LOGGER.info("call for off")
@@ -140,9 +142,4 @@ class Heating(object):
         elif self.mode == "off" and self.cb_off:
             self.cb_off()
 
-        # Only record when actual trigger is sent to turn on heat/ac.
-        # TODO: convert to 1's and 0's for averages in grafana to work
-        mode = 'true' if self.db["http_enabled"] and self.mode == 'on' else 'false'
-
-        if isinstance(self.sql, SQL):
-            self.sql.insert("test2", t=sample, rh=humidity, sp=sp, mode=mode)
+        return self.mode
