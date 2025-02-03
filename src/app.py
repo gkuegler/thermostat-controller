@@ -53,7 +53,7 @@ def control_loop(sensor, ctrl, db, eventq, safety):
                 db["fault_condition"] += "Too many events handled."
                 break
             # Python std queue.qsize() is not garunteed to be accurate.
-            # To ensure handling of all queued events, try until exception.
+            # Try until exception to ensure handling of all queued events.
             try:
                 evt = eventq.get_nowait()
 
