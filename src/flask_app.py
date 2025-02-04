@@ -97,9 +97,12 @@ def create_app():
         # TODO: temperature field can be 'None' which crashes flask.
         input_data_mapping = {
             # Form search uses the 'name' of the html element.
-            "sp": float(request.form["sp"]),
-            "threshold": float(request.form["threshold"]),
-            "controller_enabled": get_form_checkbox_bool(request.form, "http_enabled"),
+            "sp":
+                float(request.form["sp"]),
+            "threshold":
+                float(request.form["threshold"]),
+            "controller_enabled":
+                get_form_checkbox_bool(request.form, "controller_enabled"),
         }
         db = get_database()
         db.update(input_data_mapping)

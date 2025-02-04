@@ -93,9 +93,9 @@ def control_loop(controller, db, eventq):
                         LOGGER.error(
                             "FAULT: temp rise not fast enough, dissabling http.")
                         db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
-                        controller.mode = "off"
                         controller.cb_above()
                         db["http_enabled"] = False
+                        db["controller_enabled"] = False
             except queue.Empty:
                 break
 
@@ -133,27 +133,30 @@ def main():
             "threshold": 3,
             "sample_period": 10,  # FUTURE
             "sample_count": 3,  # no. of smaples to average
-            "http_enabled": False,  # master enable/disable
+            "http_enabled": False,
             "controller_enabled": False,
             "min_runtime": 5,  # min
             "max_runtime": 25,  # min TODO: rename to 'limit'
             "fault_condition": "none",
         })
 
-    # Clear faults on startup.;
-    if CLEAR_FAULTS_ON_START:
-        db["fault_condition"] = ""
+    # Always disable on boot. Require manual intervention to enable thermostat control.
+    # PC motherboard bios is set to boot when power supply is switched on.
+    # Power outages will cause my pc to boot even if it was in a shutdown state.
+    # I don't want my thermostat controlling the heat when I'm not there to correct it.
+    db["controller_enabled"] = False
+
+    # Allow HTTP messages to be sent to slave relay devices. This switch is useful for
+    # testing the behavior of my controller without touching endpoint devices.
+    db["http_enabled"] = True
 
     http = http_client.Client(db)
 
+    # Send a message to the slave device to set the timeout parameter.
     # This is the keep-alive timeout for the furnace microcontroller.
-    # The furnace microcontroller disables itself if an
-    # enable POST isn't continuously sent faster than the timeout.
-    db["http_enabled"] = True
+    # The furnace microcontroller disables itself if an enable POST isn't continuously
+    # sent faster than the timeout.
     http.set_timeout(30)
-
-    # Always disable on boot. This may change in future.
-    db["http_enabled"] = False
 
     eventq = queue.SimpleQueue()
     controller = control.Heating(

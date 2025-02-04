@@ -40,7 +40,7 @@ class RampProtection:
 
     def allowed_to_run(self):
         with self.mutex:
-            return self._allowed_to_run and self.db["http_enabled"]
+            return self._allowed_to_run
 
     def start_temp_monitor(self):
         """
