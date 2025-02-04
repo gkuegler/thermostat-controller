@@ -21,21 +21,30 @@ def log_traceback_to_file(ex: Exception, name):
 
 class ThreadWithExceptionLogging(Thread):
     """
-    Name is used as part of a filename.
+    Name must be a subset of a valid filename.
     """
-    def __init__(self,
-                 group: None = None,
-                 target: Callable[..., object] | None = None,
-                 name: str | None = None,
-                 args: Iterable[Any] = ...,
-                 kwargs: Mapping[str, Any] | None = None,
-                 *,
-                 daemon: bool | None = None) -> None:
-        # TODO: validate name as a suitable filename
+    def __init__(
+        self,
+        group: None = None,
+        target: Callable[..., object] | None = None,
+        name: str | None = None,
+        args: Iterable[Any] = ...,
+        kwargs: Mapping[str, Any] | None = None,
+        *,
+        daemon: bool | None = None,
+        catch_and_log_exceptions: bool = True,
+    ) -> None:
+
+        # TODO: validate name as a suitable filename?
         super().__init__(group, target, name, args, kwargs, daemon=daemon)
+        self.catch_and_log_exceptions = catch_and_log_exceptions
 
     def run(self):
-        try:
+        # TODO: have systemd be involved in restarting the app
+        if self.catch_and_log_exceptions:
+            try:
+                super().run()
+            except Exception as ex:
+                log_traceback_to_file(ex, self.name)
+        else:
             super().run()
-        except Exception as ex:
-            log_traceback_to_file(ex, self.name)
