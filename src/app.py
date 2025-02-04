@@ -9,7 +9,7 @@ import http_client
 import control
 import filters
 from database import Database
-import cmd_shell
+from shell_iface import ShellInterface
 import arduino
 import flask_app
 from sql import SQL
@@ -178,8 +178,8 @@ def main():
                                    daemon=True)
     t.start()
 
-    # Main thread for controlling through shell.
-    shell = cmd_shell.CommandShell(db)
+    # Main thread for controlling through therminal.
+    shell = ShellInterface(db)
     shell.cmdloop()
 
 
