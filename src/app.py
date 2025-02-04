@@ -175,17 +175,26 @@ def main():
     # be accessible from 'localhost'.
     FLASK_LAN_ENABLED = True
 
+    # Run flask in the main thread and don't use a shell interface.
+    # Use when I need to debug flask.
+    # Shell interface needs to run in the main thread.
+    FLASK_USE_MAIN_THREAD = False
+
     # Start Flask webserver.
     flask_app.set_database(db)
     app = flask_app.create_app()
-    t = ThreadWithExceptionLogging(target=flask_app.run_app,
-                                   args=(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD),
-                                   daemon=True)
-    t.start()
 
-    # Main thread for controlling through therminal.
-    shell = ShellInterface(db)
-    shell.cmdloop()
+    if not FLASK_USE_MAIN_THREAD:
+        t = ThreadWithExceptionLogging(target=flask_app.run_app,
+                                       args=(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD),
+                                       daemon=True)
+        t.start()
+
+        # Main thread for controlling through therminal.
+        shell = ShellInterface(db)
+        shell.cmdloop()
+    else:
+        flask_app.run_app(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD)
 
 
 if __name__ == "__main__":
