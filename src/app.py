@@ -114,15 +114,16 @@ def main():
     log.set_up_main_logger(
         os.path.splitext(__file__)[0] + ".log", logging.DEBUG, logging.DEBUG)
     """
-    I use no spaces in database names so that my 'cmd' interface can parse variabe names.
+    Use no spaces in database names so that my 'cmd' interface can auto parse variabe names.
     """
     # TODO: make a persistent and non-persistent section and getter & setter &
     # publisher/subscriber interfaces. Use native attribs instead of dictionary
     # interface?
+    # TODO: make getters and setters and actual parameters.
+    # TODO: changes name to settings.
     db = Database(
         name="data",
         sample_data={
-            # User controlled parameters.
             "host": "10.0.0.10",
             "port": 80,
             "sp": 67,

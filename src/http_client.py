@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import http.client
 import time
 
+
 class Client:
     def __init__(self, database):
         self.db = database
@@ -47,6 +48,12 @@ class Client:
             return None
 
     def set_timeout(self, time_s: int):
+        """
+        Send a message to the slave device to set the timeout parameter.
+        This is the keep-alive timeout for the furnace microcontroller.
+        The furnace microcontroller disables itself if an
+        enable POST isn't continuously sent faster than the timeout.
+        """
         return self.request("POST", "/api/cooling/timeout", str(time_s))
 
 
