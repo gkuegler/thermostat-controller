@@ -93,9 +93,11 @@ def control_loop(controller, db, eventq):
                         LOGGER.error(
                             "FAULT: temp rise not fast enough, dissabling http.")
                         db["fault_condition"] += "Error: Temp rise fault. Disabling HTTP.\n"
-                        controller.cb_above()
+                        controller.cb_off()
                         db["http_enabled"] = False
                         db["controller_enabled"] = False
+                    case _ as e:
+                        assert False, f"Bad event id '{e}' of type '{type(e)}'."
             except queue.Empty:
                 break
 
