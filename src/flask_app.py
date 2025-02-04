@@ -8,6 +8,8 @@ import data
 LOGGER = logging.getLogger("Flask")
 LOGGER.setLevel(logging.INFO)
 
+DEFAULT_PORT = 5000
+
 # Default data for html template, used for testing when app is loaded 'create_app' by
 # flask. Flask module automatically calls 'create_app' before if name==main block runs.
 database = {
@@ -96,9 +98,10 @@ def create_app():
     return app
 
 
-def run_app(app, host_on_lan, no_reload):
+def run_app(app, host_on_lan, no_reload, port=DEFAULT_PORT):
     LOGGER.debug("starting flask server")
     # Note: can't use 'debu=True' because signal only works in the main thread of the
     # interpreter.'
     app.run(host="0.0.0.0" if host_on_lan else None,
+            port=port,
             use_reloader=False if no_reload else None)
