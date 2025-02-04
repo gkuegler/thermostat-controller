@@ -84,12 +84,13 @@ class RampProtection:
                 self.stop()
                 return
 
-            if ((k - start)*60) > self.db["max_runtime"]:
+            if ((k - start)/60) > self.db["max_runtime"]:
                 self.LOGGER.error("FAULT: max runtime exceeded")
                 self.eventq.put(event.FAULT)
                 self.stop()
 
             time.sleep(self.check_period)
+        self.LOGGER.debug("exiting ramp protection")
 
 
 class Heating(object):
