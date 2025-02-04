@@ -3,6 +3,8 @@ from pkgutil import get_data
 import flask
 from flask import request
 
+import data
+
 LOGGER = logging.getLogger("Flask")
 
 # class WebApp:
@@ -37,11 +39,6 @@ database = {
     "controller_enabled": False,
     "min_runtime": 5,  # min
     "max_runtime": 25,  # min TODO: rename to 'limit'
-
-    # Status parameters set by the running program.
-    "current_temp": 0.0,  # sentinel value of 0.0
-    "current_humidity": 111,  # sentinel value of 111
-    "cooling_status": "off",
     "fault_condition": "none",
 }
 
@@ -91,8 +88,8 @@ def create_app():
         db = get_database()
 
         # Render Jinja template.
-        return flask.render_template('index.html',
-                                     **convert_bools_to_html_checkbox_values(db))
+        return flask.render_template(
+            'index.html', **(convert_bools_to_html_checkbox_values(db) | data.data))
 
     @app.route('/', methods=['POST'])
     def index_post():

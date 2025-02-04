@@ -16,6 +16,7 @@ from sql import SQL
 import event
 import log
 from threads import ThreadWithExceptionLogging, log_traceback_to_file
+import data
 
 
 def control_loop(controller, db, eventq):
@@ -56,8 +57,8 @@ def control_loop(controller, db, eventq):
         mode = controller.update(filter.update(t))
 
         # Update for webpage.
-        db["current_temp"] = t
-        db["current_humidity"] = rh
+        data.data["current_temp"] = t
+        data.data["current_humidity"] = rh
 
         # Only record when actual trigger is sent to turn on heat/ac.
         # TODO: convert to 1's and 0's for averages in grafana to work
@@ -83,8 +84,10 @@ def control_loop(controller, db, eventq):
             try:
                 match eventq.get_nowait():
                     case event.ON:
+                        data.data["cooling_status"] = "on"
                         safety.start()
                     case event.OFF:
+                        data.data["cooling_status"] = "off"
                         safety.stop()
                     case event.FAULT:
                         LOGGER.error(
@@ -134,11 +137,6 @@ def main():
             "controller_enabled": False,
             "min_runtime": 5,  # min
             "max_runtime": 25,  # min TODO: rename to 'limit'
-
-            # Status parameters set by the running program.
-            "current_temp": 0.0,  # sentinel value of 0.0
-            "current_humidity": 111,  # sentinel value of 111
-            "cooling_status": "off",
             "fault_condition": "none",
         })
 

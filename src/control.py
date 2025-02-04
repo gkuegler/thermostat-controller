@@ -63,15 +63,15 @@ class RampProtection:
         self.LOGGER.debug("resumed; lag phase ended")
 
         self.previous_time = time.time()
-        self.previous_temp = self.db["current_temp"]
+        self.previous_temp = data.data["current_temp"]
 
         # TODO: remove sleeps because i can't restart quickly
         time.sleep(self.check_period)
 
         while self.allowed_to_run():
             k = time.time()
-            # TODO: add global filtering to temperature
-            t = self.db["current_temp"]
+            # TODO: add global filtering to current temperature
+            t = data.data["current_temp"]
             rate = ((t - self.previous_temp)*60)/(k - self.previous_time)
             self.previous_time = k
             self.previous_temp = t
