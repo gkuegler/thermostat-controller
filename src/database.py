@@ -49,9 +49,8 @@ class Database:
                  overwrite_with_sample_data: bool = False,
                  use_file: bool = True,
                  allowed_to_write: bool = True,
-                 log_level: str = "info",
+                 log_level: int = logging.INFO,
                  allow_integers_as_keys: bool = True):
-        # TODO: make option to use file but never overwrite with sample data?
         """
         Constructor.
 
@@ -61,7 +60,9 @@ class Database:
         :type       sample_data:  dict
         """
 
-        self.logger = logging.Logger(f"database.{name}", level=logging.INFO)
+        self.logger = logging.getLogger(f"database.{name}")
+        self.logger.setLevel(log_level)
+
         self.name = name
         self.file_path = name + ".json"
         self.use_file = use_file
@@ -74,7 +75,6 @@ class Database:
         self.data = {}  # underlying database data
 
         # Hoist interface.
-        self.update = self.data.update
         """
         Scenarios:
         - file doesn't exist -> create if using a file
@@ -141,6 +141,9 @@ class Database:
             return None
         except KeyError:
             return f"error: '{key}' not a valid parameter"
+
+    def update(self, data):
+        self.data.update(data)
 
     def items(self):
         return self.data.items()
