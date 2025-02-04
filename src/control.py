@@ -4,6 +4,8 @@ from threading import Lock, Thread
 from sql import SQL
 import event
 
+import data
+
 
 class RampProtection:
     """
@@ -109,8 +111,22 @@ class Heating(object):
 
         self.LOGGER = logging.getLogger("CtrlHeating")
 
+    def _switch_on(self):
+        self.mode = "on"
+        self.LOGGER.info("call for on")
+        if self.eventq:
+            self.eventq.put(event.ON)
+
+    def _switch_off(self):
+        self.mode = "off"
+        self.LOGGER.info("call for off")
+        if self.eventq:
+            self.eventq.put(event.OFF)
+
     def update(self, sample):
         if not self.db["controller_enabled"]:
+            if self.mode == "on":
+                self._switch_off()
             return None
 
         if sample == None:
@@ -122,17 +138,12 @@ class Heating(object):
 
         # Only turn on unless it was off before.
         if sample < sp and self.mode == "off":
-            self.mode = "on"
-            self.db.set("cooling_status", "on")  # only for web UI
-            if self.eventq:
-                self.eventq.put(event.ON)
+            self._switch_on()
         elif sample > (sp + threshold):
             if self.mode == "on":
-                self.LOGGER.info("call for off")
-                if self.eventq:
-                    self.eventq.put(event.OFF)
+                self._switch_off()
+            # Redundant mode set to off.
             self.mode = "off"
-            self.db.set("cooling_status", "off")
         else:
             print("Threshold")
 
