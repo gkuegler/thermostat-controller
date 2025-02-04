@@ -15,6 +15,7 @@ import flask_app
 from sql import SQL
 import event
 import log
+from threads import ThreadWithExceptionLogging
 
 
 def control_loop(controller, db, eventq):
@@ -160,18 +161,17 @@ def main():
         cb_on=lambda: http.request("POST", "/api/cooling/status", "enable"),
         cb_off=lambda: http.request("POST", "/api/cooling/status", "disable"))
 
-    cthread = threading.Thread(target=control_loop,
-                               args=(controller, db, eventq),
-                               daemon=True)
+    cthread = ThreadWithExceptionLogging(target=control_loop,
+                                         args=(controller, db, eventq),
+                                         daemon=True)
     cthread.start()
 
     # Start Flask webserver.
-    # TODO: make threaded error handling report to stderr
     flask_app.set_database(db)
     app = flask_app.create_app()
-    t = threading.Thread(target=flask_app.run_app,
-                         args=(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD),
-                         daemon=True)
+    t = ThreadWithExceptionLogging(target=flask_app.run_app,
+                                   args=(app, FLASK_LAN_ENABLED, FLASK_NO_RELOAD),
+                                   daemon=True)
     t.start()
 
     # Main thread for controlling through shell.
