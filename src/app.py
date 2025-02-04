@@ -60,12 +60,13 @@ def control_loop(controller, db, eventq):
         data.data["current_temp"] = t
         data.data["current_humidity"] = rh
 
-        # Only record when actual trigger is sent to turn on heat/ac.
         # TODO: convert to 1's and 0's for averages in grafana to work
-        mode = 'true' if mode == 'on' else 'false'
-
         if isinstance(sql, SQL):
-            sql.insert("test2", t, rh, sp=db["sp"], mode=mode)
+            sql.insert("test2",
+                       t,
+                       rh,
+                       sp=db["sp"],
+                       mode=('true' if mode == 'on' else 'false'))
 
         # Gaurd against event handlers generating an infinite
         # circular chain of events.
@@ -110,13 +111,6 @@ def control_loop(controller, db, eventq):
 
 
 def main():
-    CLEAR_FAULTS_ON_START = False
-    FLASK_LAN_ENABLED = True
-
-    # When set to false, Flask will continuously scan my
-    # repository and auto reload on code change.
-    FLASK_NO_RELOAD = True
-
     log.set_up_main_logger(
         os.path.splitext(__file__)[0] + ".log", logging.DEBUG, logging.DEBUG)
     """
@@ -167,10 +161,18 @@ def main():
         cb_on=lambda: http.request("POST", "/api/cooling/status", "enable"),
         cb_off=lambda: http.request("POST", "/api/cooling/status", "disable"))
 
-    cthread = ThreadWithExceptionLogging(target=control_loop,
-                                         args=(controller, db, eventq),
-                                         daemon=True)
-    cthread.start()
+    ctrl_thread = ThreadWithExceptionLogging(target=control_loop,
+                                             args=(controller, db, eventq),
+                                             daemon=True)
+    ctrl_thread.start()
+
+    # When set to false, Flask will continuously scan my
+    # repository and auto reload on code change.
+    FLASK_NO_RELOAD = True
+
+    # If set to 'True', web ui will be accessible from LAN, otherwise web ui will only
+    # be accessible from 'localhost'.
+    FLASK_LAN_ENABLED = True
 
     # Start Flask webserver.
     flask_app.set_database(db)
