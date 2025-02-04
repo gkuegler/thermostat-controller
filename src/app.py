@@ -15,7 +15,7 @@ import flask_app
 from sql import SQL
 import event
 import log
-from threads import ThreadWithExceptionLogging
+from threads import ThreadWithExceptionLogging, log_traceback_to_file
 
 
 def control_loop(controller, db, eventq):
@@ -32,11 +32,14 @@ def control_loop(controller, db, eventq):
     filter = filters.SlidingAverage(3)
     sensor = arduino.Arduino(PORT, BAUD_RATE)
     safety = control.RampProtection(db, eventq)
+    sql = None
 
     try:
         sql = SQL("test1", use_creds=True)
-    except:
-        sql = None
+    except Exception as ex:
+        LOGGER.error("No SQL")
+        db["fault_condition"] += "No SQL. See traceback logs.\n"
+        log_traceback_to_file(ex, "sql")
 
     while True:
         start = time.time()

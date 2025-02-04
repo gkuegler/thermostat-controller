@@ -6,6 +6,19 @@ from threading import Thread
 from typing import Any, Iterable, Mapping
 
 
+def log_traceback_to_file(ex: Exception, name):
+    src_dir = os.path.dirname(os.path.realpath(__file__))
+    t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    s = f"----- start '{name}' exception traceback -----\n"
+    s += f"Time: {t}\n"
+    s += "".join(traceback.format_exception(ex))
+    s += f"----- end '{name}' exception traceback -------\n"
+
+    with open(os.path.join(src_dir, f'traceback-{name}.log'), 'at') as f:
+        f.write(s)
+
+
 class ThreadWithExceptionLogging(Thread):
     """
     Name is used as part of a filename.
@@ -25,13 +38,4 @@ class ThreadWithExceptionLogging(Thread):
         try:
             super().run()
         except Exception as ex:
-            src_dir = os.path.dirname(os.path.realpath(__file__))
-            t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            s = f"----- start '{self.name}' exception traceback -----\n"
-            s += f"Time: {t}\n"
-            s += "".join(traceback.format_exception(ex))
-            s += f"----- end '{self.name}' exception traceback -------\n"
-
-            with open(os.path.join(src_dir, f'traceback-{self.name}.log'), 'wt') as f:
-                f.write(s)
+            log_traceback_to_file(ex, self.name)
