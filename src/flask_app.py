@@ -6,24 +6,7 @@ from flask import request
 import data
 
 LOGGER = logging.getLogger("Flask")
-
-# class WebApp:
-
-#     def __init__(self, database):
-#         self.db = database
-
-#         self.app = flask.Flask(__name__)
-
-#     # a simple page that says hello
-#     @self.app.route('/', methods=['GET', 'POST'])
-#     def hello(self):
-#         print(data)
-#         if request.method == 'POST':
-#             data.update(request.form)
-#         return flask.render_template('index.html', **data)
-
-# Couldn't put this in HTML file becuase of the jinja template.
-# <!-- {{'%0.2f'|format(product_details.UnitPrice|float)}} formatting a 2 decimal float -->
+LOGGER.setLevel(logging.INFO)
 
 # Default data for html template, used for testing when app is loaded 'create_app' by
 # flask. Flask module automatically calls 'create_app' before if name==main block runs.
@@ -46,11 +29,12 @@ database = {
 def set_database(db):
     global database
     database = db
-    LOGGER.debug(f"db set: {database}")
+    LOGGER.debug(f"db set: {id(database)}")
 
 
 def get_database():
     global database
+    LOGGER.debug(f"db get: {id(database)}")
     return database
 
 
@@ -74,11 +58,6 @@ def get_form_checkbox_bool(form, name):
     return True if form.get(name) == 'on' else False
 
 
-"""
-Flask interface?
-"""
-
-
 def create_app():
 
     app = flask.Flask(__name__)
@@ -95,7 +74,7 @@ def create_app():
     def index_post():
         # Transform form data from strings into desired datatypes.
         # TODO: temperature field can be 'None' which crashes flask.
-        input_data_mapping = {
+        settings = {
             # Form search uses the 'name' of the html element.
             "sp":
                 float(request.form["sp"]),
@@ -105,7 +84,7 @@ def create_app():
                 get_form_checkbox_bool(request.form, "controller_enabled"),
         }
         db = get_database()
-        db.update(input_data_mapping)
+        db.update(settings)
         return flask.redirect('/')
 
     @app.route('/clearfaults', methods=['POST'])
