@@ -4,8 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Flask Test App</title>
+    <title>Bedroom Temp Controller</title>
     <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+
+    <!-- Default favicon (for browsers that don't support media queries in link tags) -->
+    <!-- Icon should be 16x16 and in ICO format. Put in 'static' directory. -->
+    <!-- Note that 'type="image/x-icon"' is not an official IANA specification. -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-default.ico') }}">
+
+    <!-- Light mode favicon. -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon-light.ico') }}" type="image/x-icon"
+        media="(prefers-color-scheme: light)">
+
+    <!-- Dark mode favicon. -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon-dark.ico') }}" type="image/x-icon"
+        media="(prefers-color-scheme: dark)">
 </head>
 
 <body>
