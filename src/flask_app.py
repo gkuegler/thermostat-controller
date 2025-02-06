@@ -95,6 +95,13 @@ def create_app():
         db.update({"fault_condition": ""})
         return flask.redirect('/')
 
+    @app.route('/temperature', methods=['GET'])
+    def parameter_get_temperature():
+        t = data.data["current_temp"]
+        content = f"{t:.2f}"
+        print(content)
+        return flask.Response(f"{t:.2f}", content_type="text/plain")
+
     return app
 
 
