@@ -1,4 +1,9 @@
 import logging
+import os
+
+
+def change_extension(file_path, new_extension):
+    return os.path.splitext(file_path)[0] + new_extension
 
 
 def set_up_main_logger(log_path,

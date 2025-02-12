@@ -1,9 +1,12 @@
 import serial
 import json
+import logging
 
 
 class Arduino:
-    def __init__(self, port, baud_rate):
+    def __init__(self, port, baud_rate, log_level=logging.INFO):
+        self.logger = logging.getLogger("Arduino")
+        self.logger.setLevel(log_level)
         self.serial = serial.Serial(port=port,
                                     baudrate=baud_rate,
                                     write_timeout=1,
@@ -25,16 +28,16 @@ class Arduino:
             tempF = _t if isinstance(_t := data["tempF"], (int, float)) else None
             rh = _rh if isinstance(_rh := data["humidity"], (int, float)) else None
 
-            print(str(tempF) + "°F")
+            self.logger.info(str(tempF) + "°F")
             return tempF, rh
         except json.JSONDecodeError:
-            print("Message not valid json.")
+            self.logger.warning("Message not valid json.")
         except serial.SerialException as ex:
             if ex.errno == 2:
                 # TODO: generate fault event
-                print(f"Error Arduino not connected.")
+                self.logger.error(f"Error Arduino not connected.")
             else:
-                print(ex)
+                self.logger.error(ex)
         except Exception as ex:
-            print(ex)
+            self.logger.error(ex)
         return None, None

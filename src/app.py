@@ -31,7 +31,7 @@ def control_loop(controller, db, eventq):
     LOGGER = logging.getLogger("CtrlLoop")
 
     filter = filters.SlidingAverage(3)
-    sensor = arduino.Arduino(PORT, BAUD_RATE)
+    sensor = arduino.Arduino(PORT, BAUD_RATE, log_level=logging.WARNING)
     safety = control.RampProtection(db, eventq)
     sql = None
 

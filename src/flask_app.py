@@ -106,8 +106,12 @@ def create_app():
 
 
 def run_app(app, host_on_lan, no_reload, port=DEFAULT_PORT):
-    LOGGER.debug("starting flask server")
-    # Note: can't use 'debu=True' because signal only works in the main thread of the
+    # Reduce verbosity of external library calls in logs.
+    wlog = logging.getLogger("werkzeug")
+    wlog.setLevel(logging.WARNING)
+
+    LOGGER.info("starting flask server")
+    # Note: can't use 'debug=True' because signal only works in the main thread of the
     # interpreter.'
     app.run(host="0.0.0.0" if host_on_lan else None,
             port=port,

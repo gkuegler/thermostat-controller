@@ -78,10 +78,12 @@ class RampProtection:
             self.previous_time = k
             self.previous_temp = t
 
-            self.LOGGER.debug(f"rate abs(°F/m): {rate:.3f}")
+            self.LOGGER.info(f"temp change rate = {rate:.3f}°F/min")
 
             if rate < self.min_temp_rate:
-                self.LOGGER.error("FAULT: temp rise rate not met")
+                self.LOGGER.error(
+                    "FAULT: a temp change rate of '{self.min_temp_rate:.3f}°F/min' was not met.\n"
+                    "Measured a rate of '{rate:.3f}°F/min'")
                 self.eventq.put(event.FAULT)
                 self.stop()
                 return
