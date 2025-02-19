@@ -138,26 +138,20 @@ class Database:
         try:
             self.data[key]
             self.__setitem__(key, value)
+            self.save()
             return None
         except KeyError:
             return f"error: '{key}' not a valid parameter"
 
     def update(self, data):
         self.data.update(data)
+        self.save()
 
     def items(self):
         return self.data.items()
 
     def keys(self):
         return self.data.keys()
-
-    def set_defaults(self, d: dict):
-        for key, value in d.items():
-            try:
-                self.data[key]
-            except KeyError:
-                self.data[key] = value
-        self.save()
 
     def load(self):
         try:
@@ -166,7 +160,7 @@ class Database:
             return True
         # If the file does not exist, load in the sample data.
         # A new data file should be created whenever the key is
-        # set through a voice command.
+        # set and the data subsequently saved.
         except FileNotFoundError:
             print(f"{self.name} database -> Loading sample data.\n"
                   + f"Couldn't find file: {self.file_path}")

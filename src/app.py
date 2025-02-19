@@ -111,8 +111,8 @@ def control_loop(controller, db, eventq):
 
 
 def main():
-    log.set_up_main_logger(
-        os.path.splitext(__file__)[0] + ".log", logging.DEBUG, logging.DEBUG)
+    # log.set_up_main_logger(
+    #     os.path.splitext(__file__)[0] + ".log", logging.DEBUG, logging.DEBUG)
     """
     Use no spaces in database names so that my 'cmd' interface can auto parse variabe names.
     """

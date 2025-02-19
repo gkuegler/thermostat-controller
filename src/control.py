@@ -1,5 +1,6 @@
 import logging
 import time
+import datetime
 from threading import Lock, Thread
 from sql import SQL
 import event
@@ -7,20 +8,24 @@ import event
 import data
 
 
+# TODO: Disable min-temp rate check after 1st check and let duration handle it?
+# or make the checks follow the min curve, so 1st measurement needs to be above 0.5°F
+# and the subsequent need to follow the exponential decay? I like this idea. Need the
+# formula from excel trendline though or run a bunch of sql querries when the call for heat was 'on'?
+# Find deviation from curve and require 90% adherrance?
+# TODO: timed ramp protection => dT = 0.5 * e^(-0.2*t)
 class RampProtection:
     """
     Sample taken from heating.
-    (70.7 - 68.3)/(60*2)  # deg/s -> 2.4 deg/m
-    I measured a lag time of ~2.6 minutes before hot air actuall
+    I measured a lag time of ~2.6 minutes before hot air actually
     starting raising the room temp at a fairly linear rate.
     """
     def __init__(self, db, eventq) -> None:
         self.eventq = eventq
         self.db = db
-        self.check_period = 2*60  # seconds
-        self.min_temp_rate = 0.2  # 1.5 deg/min to deg/s
-        # Time it takes for room to start raising temp after a call for heating
-        # or cooling.
+        self.check_period = 30  # seconds
+        self.min_temp_rate = 0.1  # °F/min
+        # Time it takes for room to start raising temp after a call for heating.
         self.lag_time = 3*60
 
         self.thread = False
@@ -43,6 +48,9 @@ class RampProtection:
     def allowed_to_run(self):
         with self.mutex:
             return self._allowed_to_run
+
+    def calc_req_temp_rise_from_curve(self):
+        pass
 
     def start_temp_monitor(self):
         """
@@ -68,6 +76,9 @@ class RampProtection:
         self.previous_temp = data.data["current_temp"]
 
         # TODO: remove sleeps because i can't restart quickly
+        if not self.allowed_to_run():
+            return
+
         time.sleep(self.check_period)
 
         while self.allowed_to_run():
@@ -82,10 +93,10 @@ class RampProtection:
 
             if rate < self.min_temp_rate:
                 self.LOGGER.error(
-                    "FAULT: a temp change rate of '{self.min_temp_rate:.3f}°F/min' was not met.\n"
-                    "Measured a rate of '{rate:.3f}°F/min'")
-                self.eventq.put(event.FAULT)
-                self.stop()
+                    f"FAULT: a temp change rate of '{self.min_temp_rate:.3f}°F/min' was not met.\n"
+                    f"Measured a rate of '{rate:.3f}°F/min'")
+                # self.eventq.put(event.FAULT)
+                # self.stop()
                 return
 
             if ((k - start)/60) > self.db["max_runtime"]:
@@ -108,6 +119,7 @@ class Heating(object):
         self.eventq = eventq
         self.cb_on = cb_on  # callback to turn heating on
         self.cb_off = cb_off  # callback to turn heating off
+        self.start_time = 0
 
         self.mode = "off"
 
@@ -116,14 +128,26 @@ class Heating(object):
     def _switch_on(self):
         self.mode = "on"
         self.LOGGER.info("call for on")
+        self.start_time = time.time()
         if self.eventq:
             self.eventq.put(event.ON)
 
     def _switch_off(self):
         self.mode = "off"
         self.LOGGER.info("call for off")
+        duration = time.time() - self.start_time
+        duration_formatted = datetime.timedelta(seconds=duration)
+        self.LOGGER.info(f"duration: {duration_formatted}")
+        if duration < 10*60:
+            self.LOGGER.warning(f"Short cycled, duration: {duration_formatted}")
+            self.db["fault_condition"] += "Warning: Short Cycle: {duration_formatted}"
+
         if self.eventq:
             self.eventq.put(event.OFF)
+
+    def safety_checks(self):
+        # TODO: in thread or out of thread? or use ticks? or time?
+        return
 
     def update(self, sample):
         if not self.db["controller_enabled"]:
