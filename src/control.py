@@ -4,8 +4,13 @@ import datetime
 from threading import Lock, Thread
 from sql import SQL
 import event
+from math import exp
 
 import data
+
+
+def minutes(s):
+    return s*60.0
 
 
 # TODO: Disable min-temp rate check after 1st check and let duration handle it?
@@ -14,6 +19,7 @@ import data
 # formula from excel trendline though or run a bunch of sql querries when the call for heat was 'on'?
 # Find deviation from curve and require 90% adherrance?
 # TODO: timed ramp protection => dT = 0.5 * e^(-0.2*t)
+# 0.25°F/min has been observed with the vent closed
 class RampProtection:
     """
     Sample taken from heating.
@@ -23,10 +29,11 @@ class RampProtection:
     def __init__(self, db, eventq) -> None:
         self.eventq = eventq
         self.db = db
-        self.check_period = 30  # seconds
+        self.check_period = 2*60  # seconds
         self.min_temp_rate = 0.1  # °F/min
         # Time it takes for room to start raising temp after a call for heating.
-        self.lag_time = 3*60
+        self.lag_time = 3*60 + 30
+        self.rate_violation_limit = 3
 
         self.thread = False
         self._allowed_to_run = False
@@ -49,8 +56,8 @@ class RampProtection:
         with self.mutex:
             return self._allowed_to_run
 
-    def calc_req_temp_rise_from_curve(self):
-        pass
+    def calc_req_temp_rise_rate_from_curve(self, t: float):
+        return 0.5*exp(-0.25*t)
 
     def start_temp_monitor(self):
         """
@@ -63,6 +70,8 @@ class RampProtection:
         with self.mutex:
             self._allowed_to_run = True
 
+        rate_violations = 0
+
         self.LOGGER.debug("starting")
         self.LOGGER.debug("pausing for lag phase")
 
@@ -71,8 +80,12 @@ class RampProtection:
         time.sleep(self.lag_time)
 
         self.LOGGER.debug("resumed; lag phase ended")
+        now = time.time()
 
-        self.previous_time = time.time()
+        # Hack
+        time_start_checking = now + self.check_period
+
+        self.previous_time = now
         self.previous_temp = data.data["current_temp"]
 
         # TODO: remove sleeps because i can't restart quickly
@@ -82,27 +95,35 @@ class RampProtection:
         time.sleep(self.check_period)
 
         while self.allowed_to_run():
-            k = time.time()
+            now = time.time()
             # TODO: add global filtering to current temperature
             t = data.data["current_temp"]
-            rate = ((t - self.previous_temp)*60)/(k - self.previous_time)
-            self.previous_time = k
+            rate = ((t - self.previous_temp)*60)/(now - self.previous_time)
+            self.previous_time = now
             self.previous_temp = t
 
-            self.LOGGER.info(f"temp change rate = {rate:.3f}°F/min")
+            delta = (now - time_start_checking)/60.0
+            req_rate = self.calc_req_temp_rise_rate_from_curve(delta)
+            self.LOGGER.info(
+                f"temp change rate = {delta:.1f}min {rate:.3f}°F/min > {req_rate:.3f}°F/min"
+            )
 
-            if rate < self.min_temp_rate:
+            if rate < req_rate:
+                rate_violations += 1
                 self.LOGGER.error(
-                    f"FAULT: a temp change rate of '{self.min_temp_rate:.3f}°F/min' was not met.\n"
-                    f"Measured a rate of '{rate:.3f}°F/min'")
-                # self.eventq.put(event.FAULT)
-                # self.stop()
+                    f"FAULT: a temp change rate of '{req_rate:.3f}°F/min' was not met.\n"
+                    f"Measured a rate of '{rate:.3f}°F/min'; violation #{rate_violations}"
+                )
+
+            if rate_violations >= self.rate_violation_limit:
+                self.LOGGER.error(f"Max number of rate violations reached.")
+                self.eventq.put(event.FAULT)
                 return
 
-            if ((k - start)/60) > self.db["max_runtime"]:
+            if ((now - start)/60) > self.db["max_runtime"]:
                 self.LOGGER.error("FAULT: max runtime exceeded")
                 self.eventq.put(event.FAULT)
-                self.stop()
+                return
 
             time.sleep(self.check_period)
         self.LOGGER.debug("exiting ramp protection")
@@ -140,7 +161,7 @@ class Heating(object):
         self.LOGGER.info(f"duration: {duration_formatted}")
         if duration < 10*60:
             self.LOGGER.warning(f"Short cycled, duration: {duration_formatted}")
-            self.db["fault_condition"] += "Warning: Short Cycle: {duration_formatted}"
+            self.db["fault_condition"] += f"Warning: Short Cycle: {duration_formatted}"
 
         if self.eventq:
             self.eventq.put(event.OFF)

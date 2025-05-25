@@ -27,7 +27,7 @@ def set_up_main_logger(log_path,
     )
 
     file_handler = logging.FileHandler(log_path,
-                                       mode='w',
+                                       mode='a',
                                        encoding="utf-8",
                                        delay=True,
                                        errors=None)
