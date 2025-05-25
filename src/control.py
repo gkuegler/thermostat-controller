@@ -13,18 +13,16 @@ def minutes(s):
     return s*60.0
 
 
-# TODO: Disable min-temp rate check after 1st check and let duration handle it?
-# or make the checks follow the min curve, so 1st measurement needs to be above 0.5°F
-# and the subsequent need to follow the exponential decay? I like this idea. Need the
-# formula from excel trendline though or run a bunch of sql querries when the call for heat was 'on'?
-# Find deviation from curve and require 90% adherrance?
+
 # TODO: timed ramp protection => dT = 0.5 * e^(-0.2*t)
 # 0.25°F/min has been observed with the vent closed
 class RampProtection:
     """
-    Sample taken from heating.
-    I measured a lag time of ~2.6 minutes before hot air actually
-    starting raising the room temp at a fairly linear rate.
+    Sample taken from heating. I measured a lag time of ~2.6 minutes before hot
+    air actually starting raising the room temp at a fairly linear rate. A Curve
+    that follows the observed dT/dt is used as a threshold to determine is the
+    vent is closed or some other issue is preventing the space from heating.
+    After (3) samples of dT/dt below the threshold curve the system faults.
     """
     def __init__(self, db, eventq) -> None:
         self.eventq = eventq
@@ -134,7 +132,6 @@ class Heating(object):
     docstring
     """
 
-    # TODO: combine ramp control with this class to make a Furnace controller?
     def __init__(self, database, eventq=None, cb_on=None, cb_off=None):
         self.db = database
         self.eventq = eventq
